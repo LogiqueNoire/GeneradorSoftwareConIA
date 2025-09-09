@@ -6,26 +6,26 @@ export class Articulo {
   id!: number;
 
   @Column({ type: "varchar", length: 255 })
-  titulo!: string;
+  tag!: string;
 
   @Column({ type: "varchar", length: 255 })
-  titulo!: string;
+  title!: string;
 
   @Column({ type: "varchar", length: 255, nullable: true })
   subtitulo?: string | null;
 
   @Column({ type: "varchar", length: 120 })
-  autor!: string;
+  author!: string;
 
   @Column({ type: "timestamptz" })
-  fecha!: Date;
+  publishDate!: Date;
 
   @Column({ type: "int", name: "tiempo_lectura" })
-  tiempoLectura!: number;
+  readTime!: number;
 
   // texto completo del artículo
   @Column({ type: "text" })
-  texto!: string;
+  content!: string;
 
   // timestamps para auditoría
   @CreateDateColumn({ type: "timestamptz", name: "created_at" })

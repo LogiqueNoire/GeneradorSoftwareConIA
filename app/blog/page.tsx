@@ -9,9 +9,9 @@ export default function BlogPage() {
     {
       id: "chatbot-dentistas-aumenta-citas",
       title: "Cómo el Chatbot para Dentistas Aumenta las Citas un 30%",
-      description:
+      subtitle:
         "Descubre cómo la automatización inteligente puede transformar la gestión de citas en tu clínica dental, reduciendo cancelaciones y optimizando horarios.",
-      category: "Automatización",
+      tag: "Automatización",
       readTime: "5 min",
       publishDate: "Hace 2 días",
       author: "IA SystemGen",
@@ -20,7 +20,7 @@ export default function BlogPage() {
     {
       id: "automatizar-facturacion-ecommerce",
       title: "5 Pasos para Automatizar la Facturación en tu E-commerce",
-      description:
+      subtitle:
         "Guía completa para implementar facturación automática y reducir errores manuales en tu tienda online, mejorando el flujo de caja.",
       category: "E-commerce",
       readTime: "7 min",
@@ -31,9 +31,9 @@ export default function BlogPage() {
     {
       id: "crm-personalizado-roi-400",
       title: "Sistema CRM Personalizado: ROI del 400% en 6 Meses",
-      description:
+      subtitle:
         "Caso de estudio real: cómo una empresa logró 400% de ROI implementando un CRM automatizado con seguimiento inteligente.",
-      category: "CRM",
+      tag: "CRM",
       readTime: "8 min",
       publishDate: "Hace 3 días",
       author: "IA SystemGen",
@@ -42,9 +42,9 @@ export default function BlogPage() {
     {
       id: "automatizacion-restaurantes-pedidos",
       title: "Automatización de Pedidos: Restaurantes Aumentan Ventas 45%",
-      description:
+      subtitle:
         "Cómo los sistemas automatizados de pedidos están revolucionando la industria gastronómica y mejorando la experiencia del cliente.",
-      category: "Restaurantes",
+      tag: "Restaurantes",
       readTime: "6 min",
       publishDate: "Hace 5 días",
       author: "IA SystemGen",
@@ -53,9 +53,9 @@ export default function BlogPage() {
     {
       id: "sistema-inventario-inteligente",
       title: "Sistema de Inventario Inteligente: Reduce Costos 25%",
-      description:
+      subtitle:
         "Implementa un sistema de inventario que predice demanda y optimiza stock automáticamente, reduciendo costos operativos.",
-      category: "Inventario",
+      tag: "Inventario",
       readTime: "9 min",
       publishDate: "Hace 1 semana",
       author: "IA SystemGen",
@@ -64,9 +64,9 @@ export default function BlogPage() {
     {
       id: "chatbot-soporte-24-7",
       title: "Chatbot de Soporte 24/7: Satisfacción del Cliente al 95%",
-      description:
+      subtitle:
         "Descubre cómo implementar un sistema de soporte automatizado que resuelve el 80% de consultas sin intervención humana.",
-      category: "Soporte",
+      tag: "Soporte",
       readTime: "4 min",
       publishDate: "Hace 4 días",
       author: "IA SystemGen",
@@ -130,10 +130,10 @@ export default function BlogPage() {
               <Card key={post.id} className="group hover:shadow-lg transition-all duration-300">
                 <CardHeader>
                   <Badge variant="secondary" className="w-fit mb-2">
-                    {post.category}
+                    {post.tag}
                   </Badge>
                   <CardTitle className="text-xl group-hover:text-primary transition-colors">{post.title}</CardTitle>
-                  <CardDescription className="text-pretty">{post.description}</CardDescription>
+                  <CardDescription className="text-pretty">{post.subtitle}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
@@ -168,10 +168,10 @@ export default function BlogPage() {
               <Card key={post.id} className="group hover:shadow-lg transition-all duration-300">
                 <CardHeader>
                   <Badge variant="outline" className="w-fit mb-2">
-                    {post.category}
+                    {post.tag}
                   </Badge>
                   <CardTitle className="text-lg group-hover:text-primary transition-colors">{post.title}</CardTitle>
-                  <CardDescription className="text-pretty">{post.description}</CardDescription>
+                  <CardDescription className="text-pretty">{post.subtitle}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">

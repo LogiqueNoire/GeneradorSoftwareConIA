@@ -2,13 +2,13 @@ import { connectDB } from "./db";
 import { Articulo } from "./entity/Articulo";
 
 export async function crearArticulo(data: {
-  etiqueta: string[];
-  titulo: string;
-  subtitulo?: string | null;
-  autor: string;
-  fecha: Date;
-  tiempoLectura: number;
-  texto: string;
+  tag: string[];
+  title: string;
+  subtitle?: string | null;
+  author: string;
+  publishDate: Date;
+  readTime: number;
+  content: string;
 }) {
   const db = await connectDB();
   const repo = db.getRepository(Articulo);
@@ -19,5 +19,5 @@ export async function crearArticulo(data: {
 export async function listarArticulos() {
   const db = await connectDB();
   const repo = db.getRepository(Articulo);
-  return await repo.find({ order: { fecha: "DESC" } });
+  return await repo.find({ order: { publishDate: "DESC" } });
 }

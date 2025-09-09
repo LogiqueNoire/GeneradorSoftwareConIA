@@ -3,13 +3,13 @@
 import { crearArticulo, listarArticulos } from "@/lib/article.repo";
 
 export async function actionCrearArticulo(payload: {
-  etiqueta: string[];
-  titulo: string;
-  subtitulo?: string | null;
-  autor: string;
-  fecha: string; // o Date
-  tiempoLectura: number;
-  texto: string;
+  tag: string[];
+  title: string;
+  subtitle?: string | null;
+  author: string;
+  readTime: string; // o Date
+  readTime: number;
+  content: string;
 }) {
   // si recibes fecha como string, conviértela a Date
   const fecha = new Date(payload.fecha);

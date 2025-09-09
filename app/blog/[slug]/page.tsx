@@ -8,9 +8,9 @@ import { notFound } from "next/navigation"
 const blogPosts = {
   "chatbot-dentistas-aumenta-citas": {
     title: "Cómo el Chatbot para Dentistas Aumenta las Citas un 30%",
-    description:
+    subtitle:
       "Descubre cómo la automatización inteligente puede transformar la gestión de citas en tu clínica dental",
-    category: "Automatización",
+    tag: "Automatización",
     readTime: "5 min",
     publishDate: "15 de Enero, 2024",
     author: "IA SystemGen",
@@ -45,8 +45,8 @@ const blogPosts = {
   },
   "automatizar-facturacion-ecommerce": {
     title: "5 Pasos para Automatizar la Facturación en tu E-commerce",
-    description: "Guía completa para implementar facturación automática y reducir errores manuales en tu tienda online",
-    category: "E-commerce",
+    subtitle: "Guía completa para implementar facturación automática y reducir errores manuales en tu tienda online",
+    tag: "E-commerce",
     readTime: "7 min",
     publishDate: "10 de Enero, 2024",
     author: "IA SystemGen",
@@ -80,8 +80,8 @@ const blogPosts = {
   },
   "crm-personalizado-roi-400": {
     title: "Sistema CRM Personalizado: ROI del 400% en 6 Meses",
-    description: "Caso de estudio real: cómo una empresa logró 400% de ROI implementando un CRM automatizado",
-    category: "CRM",
+    subtitle: "Caso de estudio real: cómo una empresa logró 400% de ROI implementando un CRM automatizado",
+    tag: "CRM",
     readTime: "8 min",
     publishDate: "12 de Enero, 2024",
     author: "IA SystemGen",
