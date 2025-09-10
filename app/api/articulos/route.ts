@@ -1,40 +1,41 @@
-import { NextResponse } from "next/server";
-import { connectDB } from "@/lib/db";
-import { Articulo } from "@/lib/entity/Articulo";
+import { type NextRequest, NextResponse } from "next/server"
+import { neon } from "@neondatabase/serverless"
+import type { CreateArticleRequest } from "@/lib/types"
 
-// POST /api/articulos
-export async function POST(req: Request) {
+const sql = neon(process.env.DATABASE_URL!)
+
+export async function GET() {
   try {
-    const body = await req.json();
-
-    const db = await connectDB();
-    const repo = db.getRepository(Articulo);
-
-    const articulo = repo.create({
-      tag: body.tag ?? [],
-      title: body.title,
-      subtitle: body.subtitle,
-      author: body.author,
-      publishDate: new Date(body.publishDate),
-      readTime: body.readTime,
-      content: body.content,
-    });
-
-    const saved = await repo.save(articulo);
-    return NextResponse.json(saved, { status: 201 });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const articles = await sql`
+      SELECT id, title, subtitle, content, tag, publish_date, read_time, created_at, updated_at
+      FROM articles
+      ORDER BY publish_date DESC
+    `
+    return NextResponse.json(articles)
+  } catch (error) {
+    console.error("Error fetching articles:", error)
+    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
   }
 }
 
-// GET /api/articulos
-export async function GET() {
+export async function POST(request: NextRequest) {
   try {
-    const db = await connectDB();
-    const repo = db.getRepository(Articulo);
-    const articulos = await repo.find({ order: { publishDate: "DESC" } });
-    return NextResponse.json(articulos);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    const body: CreateArticleRequest = await request.json()
+    const { title, subtitle, content, tag, read_time = 5 } = body
+
+    if (!title || !content) {
+      return NextResponse.json({ error: "Title y content son requeridos" }, { status: 400 })
+    }
+
+    const [newArticle] = await sql`
+      INSERT INTO articles (title, subtitle, content, tag, read_time)
+      VALUES (${title}, ${subtitle || null}, ${content}, ${tag || null}, ${read_time})
+      RETURNING id, title, subtitle, content, tag, publish_date, read_time, created_at, updated_at
+    `
+
+    return NextResponse.json(newArticle, { status: 201 })
+  } catch (error) {
+    console.error("Error creating article:", error)
+    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
   }
 }
