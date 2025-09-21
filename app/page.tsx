@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -39,6 +39,7 @@ export default function HomePage() {
 
   if (gameStarted) {
     return (
+      <Suspense>
       <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5">
         <GameConfigurator
           onBack={() => setGameStarted(false)}
@@ -51,10 +52,12 @@ export default function HomePage() {
         />
         <ProactiveChatbot isVisible={showChatbot} onClose={() => setShowChatbot(false)} userLevel={userLevel} />
       </div>
+      </Suspense>
     )
   }
 
   return (
+    <Suspense>
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5">
       {/* Gamified Header */}
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
@@ -398,6 +401,7 @@ export default function HomePage() {
       {/* Proactive Chatbot */}
       <ProactiveChatbot isVisible={showChatbot} onClose={() => setShowChatbot(false)} userLevel={userLevel} />
     </div>
+    </Suspense>
   )
 }
 
