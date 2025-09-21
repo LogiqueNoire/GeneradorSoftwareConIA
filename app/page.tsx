@@ -6,22 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import {
-  ArrowRight,
-  Zap,
-  Cog,
-  CheckCircle,
-  Star,
-  Trophy,
-  Target,
-  MessageCircle,
-  Sparkles,
-  Play,
-  Crown,
-  Gift,
+  ArrowRight, Zap, Cog, CheckCircle, Trophy, Target, MessageCircle, Sparkles, Play, Crown,
+  Gift, Rocket, NotepadText, User2, ShieldCheck,
 } from "lucide-react"
 import Link from "next/link"
 import { GameConfigurator } from "@/components/game-configurator"
 import { ProactiveChatbot } from "@/components/proactive-chatbot"
+import fondoNuevo from "@/public/circulosverdes.gif"
 
 export default function HomePage() {
   const [gameStarted, setGameStarted] = useState(false)
@@ -71,28 +62,10 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Experience Bar */}
-          <div className="hidden md:flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <Star className="w-4 h-4 text-accent" />
-              <span className="text-sm font-medium">{experience} XP</span>
-            </div>
-            <Progress value={experience % 100} className="w-24" />
-          </div>
-
           <div className="flex items-center gap-3">
-            <Link href="/login">
-              <Button variant="outline" size="sm" className="relative bg-transparent">
-                <Trophy className="w-4 h-4 mr-2" />
-                Mi Progreso
-              </Button>
-            </Link>
-            <Button
-              onClick={() => setGameStarted(true)}
-              className="bg-primary hover:bg-primary/90 shadow-lg text-white"
-            >
-              <Play className="w-4 h-4 mr-2" />
-              ¡Empezar Juego!
+            <Button className="bg-primary hover:bg-primary/90 text-white" onClick={() => setGameStarted(true)}>
+              <Rocket className="w-4 h-4 mr-2" />
+              Desplegar Sistema
             </Button>
           </div>
         </div>
@@ -106,6 +79,7 @@ export default function HomePage() {
                   size="sm"
                   className="text-muted-foreground hover:text-foreground hover:bg-primary/10"
                 >
+                  <NotepadText />
                   Blog
                 </Button>
               </Link>
@@ -115,6 +89,7 @@ export default function HomePage() {
                   size="sm"
                   className="text-muted-foreground hover:text-foreground hover:bg-primary/10"
                 >
+                  <User2 />
                   Iniciar Sesión
                 </Button>
               </Link>
@@ -124,6 +99,7 @@ export default function HomePage() {
                   size="sm"
                   className="text-muted-foreground hover:text-foreground hover:bg-primary/10"
                 >
+                  <ShieldCheck></ShieldCheck>
                   Intranet
                 </Button>
               </Link>
@@ -134,17 +110,13 @@ export default function HomePage() {
 
       {/* Hero Game Section */}
       <section className="py-20 px-4 relative overflow-hidden">
-        {/* Animated background elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-10 w-20 h-20 bg-primary/10 rounded-full animate-pulse"></div>
-          <div className="absolute top-40 right-20 w-16 h-16 bg-accent/10 rounded-full animate-bounce"></div>
-          <div className="absolute bottom-20 left-1/3 w-12 h-12 bg-primary/20 rounded-full animate-pulse"></div>
-        </div>
+        <img src={fondoNuevo.src} alt="" className="absolute object-cover inset-0 w-full h-full" />
+
 
         <div className="container mx-auto text-center max-w-4xl relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 mb-6 bg-primary/10 text-slate-800 rounded-full border border-primary/20">
             <Sparkles className="w-4 h-4" />
-            <span className="font-medium">¡Experiencia Gamificada!</span>
+            <span className="font-medium">¡Experiencia garantizada!</span>
           </div>
 
           <h1 className="text-5xl md:text-7xl font-bold text-foreground mb-6 text-balance">
@@ -156,22 +128,26 @@ export default function HomePage() {
 
           <p className="text-xl text-muted-foreground mb-8 text-pretty max-w-2xl mx-auto leading-relaxed">
             Configura, personaliza y despliega tu sistema empresarial en una experiencia interactiva.
-            <strong className="text-foreground"> Gana XP, desbloquea funciones y ve tu precio en tiempo real.</strong>
+            <strong className="text-foreground"> Elige funciones y ve tu precio en tiempo real.</strong>
           </p>
 
           {/* Game Stats Preview */}
-          <div className="grid grid-cols-3 gap-4 max-w-md mx-auto mb-8">
+          <div className="grid grid-cols-4 gap-4 max-w-lg mx-auto mb-8">
             <div className="bg-card/50 backdrop-blur-sm rounded-lg p-3 border">
-              <div className="text-2xl font-bold text-primary">15+</div>
-              <div className="text-xs text-muted-foreground">Módulos</div>
-            </div>
-            <div className="bg-card/50 backdrop-blur-sm rounded-lg p-3 border">
-              <div className="text-2xl font-bold text-accent">5</div>
-              <div className="text-xs text-muted-foreground">Niveles</div>
+              <div className="text-2xl font-bold text-primary">+15</div>
+              <div className="text-xs text-muted-foreground">módulos</div>
             </div>
             <div className="bg-card/50 backdrop-blur-sm rounded-lg p-3 border">
               <div className="text-2xl font-bold text-primary">∞</div>
-              <div className="text-xs text-muted-foreground">Posibilidades</div>
+              <div className="text-xs text-muted-foreground">posibilidades</div>
+            </div>
+            <div className="bg-card/50 backdrop-blur-sm rounded-lg p-3 border">
+              <div className="text-2xl font-bold text-accent">24/7</div>
+              <div className="text-xs text-muted-foreground">disponible</div>
+            </div>
+            <div className="bg-card/50 backdrop-blur-sm rounded-lg p-3 border">
+              <div className="text-2xl font-bold text-accent">100%</div>
+              <div className="text-xs text-muted-foreground">no code</div>
             </div>
           </div>
 
@@ -300,6 +276,8 @@ export default function HomePage() {
 
       {/* Interactive Preview */}
       <section className="py-20 px-4">
+
+
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-foreground mb-4">Vista Previa Interactiva</h2>
@@ -358,64 +336,23 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10">
-        <div className="container mx-auto text-center">
-          <div className="max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-3 py-1 mb-6 bg-accent/10 text-slate-800 rounded-full border border-accent/20">
-              <Sparkles className="w-4 h-4" />
-              <span className="font-medium">¡Experiencia Única!</span>
-            </div>
+      <section className="bg-white flex justify-center items-center py-[60px] px-10">
+        <div className="relative overflow-hidden w-3xl">
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="w-full h-full object-cover rounded-[50px]"
+          >
+            <source src="/video.mp4" type="video/mp4" />
+          </video>
 
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6 text-balance">
-              ¿Listo para la Aventura de
-              <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                {" "}
-                Crear tu Sistema?
-              </span>
-            </h2>
-
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
-              Únete a cientos de empresarios que ya han transformado sus negocios jugando con nuestro configurador
-              interactivo.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-              <Button
-                size="lg"
-                className="text-lg px-8 bg-primary hover:bg-primary/90 shadow-xl transform hover:scale-105 transition-all duration-200 text-white"
-                onClick={() => setGameStarted(true)}
-              >
-                <Play className="w-5 h-5 mr-2" />
-                ¡Comenzar Aventura Gratis!
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="text-lg px-8 bg-card/50 backdrop-blur-sm border-primary/30 hover:bg-primary/5"
-              >
-                <MessageCircle className="w-5 h-5 mr-2" />
-                Hablar con Experto
-              </Button>
-            </div>
-
-            <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-primary" />
-                <span>Sin tarjeta de crédito</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-primary" />
-                <span>Setup en 15 minutos</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-primary" />
-                <span>Soporte 24/7</span>
-              </div>
-            </div>
-          </div>
+          {/* Overlay para borde suave blanco */}
+          <div className="pointer-events-none absolute inset-0 rounded-[50px] z-10 shadow-[inset_0_0_50px_rgba(0,0,0,0.8)]"></div>
         </div>
       </section>
+
 
       {/* Footer */}
       <footer className="border-t bg-card/50 backdrop-blur-sm py-12 px-4">
@@ -453,3 +390,10 @@ export default function HomePage() {
     </div>
   )
 }
+
+{/* Animated background elements */ }
+<div className="absolute inset-0 overflow-hidden">
+  <div className="absolute top-20 left-10 w-20 h-20 bg-primary/10 rounded-full animate-pulse"></div>
+  <div className="absolute top-40 right-20 w-16 h-16 bg-accent/10 rounded-full animate-bounce"></div>
+  <div className="absolute bottom-20 left-1/3 w-12 h-12 bg-primary/20 rounded-full animate-pulse"></div>
+</div>
