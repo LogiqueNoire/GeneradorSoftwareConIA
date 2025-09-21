@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -741,27 +740,24 @@ export default function ConfiguratorPage() {
                           return (
                             <Card
                               key={module.id}
-                              className={`cursor-pointer transition-all duration-200 ${
-                                included
-                                  ? "border-primary bg-primary/5"
-                                  : selected
-                                    ? "border-accent bg-accent/5"
-                                    : "hover:shadow-md"
-                              }`}
+                              className={`cursor-pointer transition-all duration-200 ${included
+                                ? "border-primary bg-primary/5"
+                                : selected
+                                  ? "border-accent bg-accent/5"
+                                  : "hover:shadow-md"
+                                }`}
                               onClick={() => !included && toggleModule(module.id)}
                             >
                               <CardContent className="p-4">
                                 <div className="flex items-start justify-between">
                                   <div className="flex items-start gap-3 flex-1">
                                     <div
-                                      className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                                        included ? "bg-primary/20" : selected ? "bg-accent/20" : "bg-muted"
-                                      }`}
+                                      className={`w-10 h-10 rounded-lg flex items-center justify-center ${included ? "bg-primary/20" : selected ? "bg-accent/20" : "bg-muted"
+                                        }`}
                                     >
                                       <Icon
-                                        className={`w-5 h-5 ${
-                                          included ? "text-primary" : selected ? "text-accent" : "text-muted-foreground"
-                                        }`}
+                                        className={`w-5 h-5 ${included ? "text-primary" : selected ? "text-accent" : "text-muted-foreground"
+                                          }`}
                                       />
                                     </div>
                                     <div className="flex-1">
@@ -1296,9 +1292,8 @@ export default function ConfiguratorPage() {
                 {chatMessages.map((message, index) => (
                   <div key={index} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
                     <div
-                      className={`max-w-[80%] p-3 rounded-lg text-sm ${
-                        message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
-                      }`}
+                      className={`max-w-[80%] p-3 rounded-lg text-sm ${message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
+                        }`}
                     >
                       {message.content}
                     </div>
