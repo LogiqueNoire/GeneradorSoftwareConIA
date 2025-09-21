@@ -28,7 +28,7 @@ export default function HomePage() {
     if (shouldStart) {
       setGameStarted(true)
     }
-  }, [searchParams])
+  }, [])
 
   useEffect(() => {
     const timer = setTimeout(() => {
