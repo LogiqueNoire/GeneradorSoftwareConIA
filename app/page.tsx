@@ -13,12 +13,22 @@ import Link from "next/link"
 import { GameConfigurator } from "@/components/game-configurator"
 import { ProactiveChatbot } from "@/components/proactive-chatbot"
 import fondoNuevo from "@/public/circulosverdes.gif"
+import { useSearchParams } from "next/navigation"
 
 export default function HomePage() {
+  const searchParams = useSearchParams()
+ 
   const [gameStarted, setGameStarted] = useState(false)
   const [userLevel, setUserLevel] = useState(1)
   const [experience, setExperience] = useState(0)
   const [showChatbot, setShowChatbot] = useState(false)
+
+   useEffect(() => {
+    const shouldStart = searchParams.get("start") === "true"
+    if (shouldStart) {
+      setGameStarted(true)
+    }
+  }, [searchParams])
 
   useEffect(() => {
     const timer = setTimeout(() => {
