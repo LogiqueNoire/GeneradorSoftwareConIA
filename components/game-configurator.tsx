@@ -1,4 +1,5 @@
 "use client"
+import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
@@ -406,10 +407,7 @@ export function GameConfigurator({ onBack, userLevel, experience, onLevelUp }: G
                 <div className="text-2xl font-bold text-primary">${totalPrice}</div>
                 <div className="text-xs text-muted-foreground">Precio Total</div>
               </div>
-              <Button className="bg-primary hover:bg-primary/90 text-white" onClick={handleDeploy}>
-                <Rocket className="w-4 h-4 mr-2" />
-                Desplegar Sistema
-              </Button>
+
             </div>
           </div>
 
@@ -506,13 +504,12 @@ export function GameConfigurator({ onBack, userLevel, experience, onLevelUp }: G
                 return (
                   <Card
                     key={module.id}
-                    className={`relative overflow-hidden transition-all duration-300 cursor-pointer ${
-                      !module.unlocked
-                        ? "opacity-50 cursor-not-allowed"
-                        : isSelected
-                          ? "border-2 border-primary shadow-lg bg-primary/5"
-                          : "hover:shadow-lg border-2 hover:border-primary/30"
-                    }`}
+                    className={`relative overflow-hidden transition-all duration-300 cursor-pointer ${!module.unlocked
+                      ? "opacity-50 cursor-not-allowed"
+                      : isSelected
+                        ? "border-2 border-primary shadow-lg bg-primary/5"
+                        : "hover:shadow-lg border-2 hover:border-primary/30"
+                      }`}
                     onClick={() => handleModuleToggle(module.id)}
                   >
                     {!module.unlocked && (
@@ -526,9 +523,8 @@ export function GameConfigurator({ onBack, userLevel, experience, onLevelUp }: G
                     <CardHeader className="pb-4">
                       <div className="flex items-center justify-between mb-4">
                         <div
-                          className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                            isSelected ? "bg-primary text-white" : "bg-primary/10 text-primary"
-                          }`}
+                          className={`w-12 h-12 rounded-xl flex items-center justify-center ${isSelected ? "bg-primary text-white" : "bg-primary/10 text-primary"
+                            }`}
                         >
                           <Icon className="w-6 h-6" />
                         </div>
@@ -787,7 +783,7 @@ export function GameConfigurator({ onBack, userLevel, experience, onLevelUp }: G
                       <span className="text-sm font-medium">Pago 100% Seguro</span>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Procesado por Stripe • Encriptación SSL • PCI DSS Compliant
+                      Procesado por PayPal • Encriptación SSL • PCI DSS Compliant
                     </p>
                   </div>
                 </CardContent>
@@ -811,7 +807,7 @@ export function GameConfigurator({ onBack, userLevel, experience, onLevelUp }: G
                       : paymentStep === "register"
                         ? "Crea tu cuenta de acceso al sistema"
                         : paymentStep === "payment"
-                          ? "Procesamiento seguro con Stripe"
+                          ? "Procesamiento seguro con PayPal"
                           : "No cierres esta ventana"}
                   </CardDescription>
                 </CardHeader>
@@ -1018,16 +1014,8 @@ export function GameConfigurator({ onBack, userLevel, experience, onLevelUp }: G
 
                   {paymentStep === "payment" && (
                     <>
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <CreditCard className="w-4 h-4 text-blue-600" />
-                          <span className="text-sm font-medium text-blue-800">Datos de Prueba Precargados</span>
-                        </div>
-                        <p className="text-xs text-blue-700">
-                          Los campos están prellenados con datos de prueba válidos para Stripe
-                        </p>
-                      </div>
 
+                      {/*
                       <div>
                         <label className="text-sm font-medium text-foreground mb-2 block">Número de Tarjeta</label>
                         <Input
@@ -1074,23 +1062,31 @@ export function GameConfigurator({ onBack, userLevel, experience, onLevelUp }: G
                           placeholder="Nombre como aparece en la tarjeta"
                         />
                       </div>
-
-                      <div className="bg-muted/30 p-4 rounded-lg">
+                      */}
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <CreditCard className="w-4 h-4 text-blue-600" />
+                          <span className="text-sm font-medium text-blue-800">Datos de Prueba</span>
+                        </div>
+                        <p className="text-xs text-blue-700">
+                          Tarjeta: 4461713437359120<br />
+                          Fecha de expiración: 03/2030<br />
+                          CVV: 123
+                        </p>
+                      </div>
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
                         <div className="flex items-center gap-2 mb-2">
                           <Lock className="w-4 h-4 text-green-600" />
                           <span className="text-sm font-medium">Información Segura</span>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          Todos los datos son procesados de forma segura por Stripe. No almacenamos información de
+                          Todos los datos son procesados de forma segura por PayPal. No almacenamos información de
                           tarjetas de crédito.
                         </p>
                       </div>
-
+                      {/*
                       <div className="flex gap-3">
-                        <Button variant="outline" onClick={() => setPaymentStep("register")} className="flex-1">
-                          <ArrowLeft className="w-4 h-4 mr-2" />
-                          Volver
-                        </Button>
+                        
                         <Button className="flex-1" size="lg" onClick={handlePayment} disabled={isProcessing}>
                           {isProcessing ? (
                             <>
@@ -1105,10 +1101,53 @@ export function GameConfigurator({ onBack, userLevel, experience, onLevelUp }: G
                           )}
                         </Button>
                       </div>
-
+                      */}
                       <p className="text-xs text-center text-muted-foreground">
                         Tu sistema estará listo en menos de 1 minuto después del pago confirmado
                       </p>
+                      {!isProcessing && <div>
+                        <PayPalScriptProvider options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID as string, locale: "es_PE" }}>
+                          <PayPalButtons fundingSource="card"
+                            onClick={(data, actions) => {
+                              //setto.setTerminos(false);
+                              //contexto.general.setSubmitting(true);
+                              return actions.resolve();
+                            }}
+                            onCancel={(data, actions) => {
+                              //setto.setTerminos(true);
+                              //contexto.general.setSubmitting(false);
+                              return actions.redirect()
+                            }}
+                            createOrder={(_, actions) => {
+                              return actions.order.create({
+                                intent: "CAPTURE",
+                                purchase_units: [{
+                                  amount: {
+                                    currency_code: "USD",
+                                    value: (totalPrice).toFixed(2)
+                                  },
+                                }],
+                                application_context: {
+                                  shipping_preference: "NO_SHIPPING", // Oculta dirección completa
+                                },
+                                payer: {
+                                }
+                              })
+                            }}
+                            onApprove={(_, actions) => {
+                              if (!actions || !actions.order) return Promise.resolve();
+                              return actions.order.capture().then(details => {
+                                handlePayment()
+                                console.log(details)
+                              })
+                            }}
+                          />
+                        </PayPalScriptProvider>
+                      </div>}
+                      <Button variant="outline" onClick={() => setPaymentStep("register")} className="flex-1">
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        Volver
+                      </Button>
                     </>
                   )}
 
