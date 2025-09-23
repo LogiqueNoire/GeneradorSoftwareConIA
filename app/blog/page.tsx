@@ -1,81 +1,62 @@
+"use client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, ArrowLeft, Calendar, Clock, User, Zap } from "lucide-react"
 import Link from "next/link"
+import { GET } from "../api/articulos/route"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+
+interface Article {
+  id: string
+  title: string
+  subtitle: string
+  tag: string
+  read_time: string
+  publish_date: string
+  author: string
+  featured: boolean
+}
+
+function timeSince(date: Date): String {
+  let now = new Date()
+  let seconds = Math.floor((now.getTime()-date.getTime())/1000)
+  if(seconds < 60)
+    return "Hace " + seconds + " segundo" + (Math.trunc(seconds) != 1 ? "s" : '')
+  if(seconds < 3600)
+    return "Hace " + Math.trunc(seconds/60) + " minuto" + (Math.trunc(seconds/60) != 1 ? "s" : '')
+  if(seconds < 3600 * 24)
+    return "Hace " + Math.trunc(seconds/3600) + " hora" + (Math.trunc(seconds/3600) != 1 ? "s" : '')
+  if(seconds < 3600 * 24 * 7)
+    return "Hace " + Math.trunc(seconds/(3600*24)) + " día" + (Math.trunc(seconds/(3600 *24)) != 1 ? "s" : '')
+  if(seconds < 3600 * 24 * 30)
+    return "Hace " + Math.trunc(seconds/(3600*24*7)) + " semana" + (Math.trunc(seconds/(3600 * 24 * 7)) != 1 ? "s" : '')
+  if(seconds < 3600 * 24 * 30 * 12)
+    return "Hace " + Math.trunc(seconds/(3600*24*7*30)) + "mes" + (Math.trunc(seconds/(3600 * 24 * 7 *30)) != 1 ? "es" : '')
+
+  return "Hace " + Math.trunc(seconds/(3600*24*30*12)) + "año" + (Math.trunc(seconds/(3600 * 24 * 7 * 12)) != 1 ? "s" : '')
+}
 
 export default function BlogPage() {
-  const blogPosts = [
-    {
-      id: "chatbot-dentistas-aumenta-citas",
-      title: "Cómo el Chatbot para Dentistas Aumenta las Citas un 30%",
-      subtitle:
-        "Descubre cómo la automatización inteligente puede transformar la gestión de citas en tu clínica dental, reduciendo cancelaciones y optimizando horarios.",
-      tag: "Automatización",
-      readTime: "5 min",
-      publishDate: "Hace 2 días",
-      author: "IA SystemGen",
-      featured: true,
-    },
-    {
-      id: "automatizar-facturacion-ecommerce",
-      title: "5 Pasos para Automatizar la Facturación en tu E-commerce",
-      subtitle:
-        "Guía completa para implementar facturación automática y reducir errores manuales en tu tienda online, mejorando el flujo de caja.",
-      category: "E-commerce",
-      readTime: "7 min",
-      publishDate: "Hace 1 semana",
-      author: "IA SystemGen",
-      featured: true,
-    },
-    {
-      id: "crm-personalizado-roi-400",
-      title: "Sistema CRM Personalizado: ROI del 400% en 6 Meses",
-      subtitle:
-        "Caso de estudio real: cómo una empresa logró 400% de ROI implementando un CRM automatizado con seguimiento inteligente.",
-      tag: "CRM",
-      readTime: "8 min",
-      publishDate: "Hace 3 días",
-      author: "IA SystemGen",
-      featured: true,
-    },
-    {
-      id: "automatizacion-restaurantes-pedidos",
-      title: "Automatización de Pedidos: Restaurantes Aumentan Ventas 45%",
-      subtitle:
-        "Cómo los sistemas automatizados de pedidos están revolucionando la industria gastronómica y mejorando la experiencia del cliente.",
-      tag: "Restaurantes",
-      readTime: "6 min",
-      publishDate: "Hace 5 días",
-      author: "IA SystemGen",
-      featured: false,
-    },
-    {
-      id: "sistema-inventario-inteligente",
-      title: "Sistema de Inventario Inteligente: Reduce Costos 25%",
-      subtitle:
-        "Implementa un sistema de inventario que predice demanda y optimiza stock automáticamente, reduciendo costos operativos.",
-      tag: "Inventario",
-      readTime: "9 min",
-      publishDate: "Hace 1 semana",
-      author: "IA SystemGen",
-      featured: false,
-    },
-    {
-      id: "chatbot-soporte-24-7",
-      title: "Chatbot de Soporte 24/7: Satisfacción del Cliente al 95%",
-      subtitle:
-        "Descubre cómo implementar un sistema de soporte automatizado que resuelve el 80% de consultas sin intervención humana.",
-      tag: "Soporte",
-      readTime: "4 min",
-      publishDate: "Hace 4 días",
-      author: "IA SystemGen",
-      featured: false,
-    },
-  ]
 
-  const featuredPosts = blogPosts.filter((post) => post.featured)
-  const regularPosts = blogPosts.filter((post) => !post.featured)
+  const router = useRouter()
+  const [articles, setArticles] = useState<Article[]>()
+
+  const startGame = () => {
+    router.push("/?start=true")
+  }
+
+  useEffect(() => {
+    fetch("/api/articulos")
+      .then(res => res.json())
+      .then(data => setArticles(data))
+      .catch(err => console.error("Error cargando artículos", err))
+  }, [])
+
+  useEffect(()=>{
+    console.log(articles)
+  }, [articles])
 
   return (
     <div className="min-h-screen bg-background">
@@ -112,12 +93,10 @@ export default function BlogPage() {
             Artículos y guías generadas automáticamente por IA para ayudarte a entender cómo la automatización puede
             transformar tu negocio.
           </p>
-          <Link href="/configurator">
-            <Button size="lg" className="text-lg px-8">
+            <Button size="lg" className="text-lg px-8" onClick={()=>{startGame()}}>
               Configurar Mi Sistema
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
-          </Link>
         </div>
       </section>
 
@@ -126,7 +105,7 @@ export default function BlogPage() {
         <div className="container mx-auto">
           <h2 className="text-3xl font-bold text-foreground mb-8">Artículos Destacados</h2>
           <div className="grid md:grid-cols-3 gap-8 mb-16">
-            {featuredPosts.map((post) => (
+            {articles?.map((post) => (
               <Card key={post.id} className="group hover:shadow-lg transition-all duration-300">
                 <CardHeader>
                   <Badge variant="secondary" className="w-fit mb-2">
@@ -139,11 +118,11 @@ export default function BlogPage() {
                   <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
                     <div className="flex items-center gap-1">
                       <Clock className="w-4 h-4" />
-                      {post.readTime}
+                      {post.read_time + " minutos"}
                     </div>
                     <div className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
-                      {post.publishDate}
+                      {timeSince(new Date(post.publish_date))}
                     </div>
                   </div>
                   <Link href={`/blog/${post.id}`}>
@@ -164,7 +143,7 @@ export default function BlogPage() {
         <div className="container mx-auto">
           <h2 className="text-3xl font-bold text-foreground mb-8">Todos los Artículos</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {regularPosts.map((post) => (
+            {articles?.map((post) => (
               <Card key={post.id} className="group hover:shadow-lg transition-all duration-300">
                 <CardHeader>
                   <Badge variant="outline" className="w-fit mb-2">
@@ -177,11 +156,11 @@ export default function BlogPage() {
                   <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
                     <div className="flex items-center gap-1">
                       <Clock className="w-4 h-4" />
-                      {post.readTime}
+                      {post.read_time + " minutos"}
                     </div>
                     <div className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
-                      {post.publishDate}
+                      {timeSince(new Date(post.publish_date))}
                     </div>
                   </div>
                   <Link href={`/blog/${post.id}`}>
