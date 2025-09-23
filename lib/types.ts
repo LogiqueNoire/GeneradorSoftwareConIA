@@ -17,3 +17,28 @@ export interface CreateArticleRequest {
   tag?: string
   read_time?: number
 }
+
+// Tipos extendidos para NextAuth
+export interface ExtendedUser {
+  id: string;
+  email: string;
+  name?: string;
+  role?: string;
+  provider?: string;
+  image?: string;
+}
+
+export interface ExtendedSession {
+  user: ExtendedUser;
+  expires: string;
+}
+
+export interface ExtendedJWT {
+  sub: string;
+  email: string;
+  name?: string;
+  role?: string;
+  provider?: string;
+  iat?: number;
+  exp?: number;
+}
