@@ -55,7 +55,7 @@ interface AnalyticsData {
 
 export default function SupportPage() {
   const [showChatbot, setShowChatbot] = useState(false)
-  const [chatMessages, setChatMessages] = useState([
+  const [chatMessages, setChatMessages] = useState<{ role: "assistant" | "user"; content: string }[]>([
     {
       role: "assistant" as const,
       content:
