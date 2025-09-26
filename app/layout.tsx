@@ -1,14 +1,14 @@
-import type { Metadata } from 'next'
-import { GeistSans } from 'geist/font/sans'
-import { GeistMono } from 'geist/font/mono'
-import { Analytics } from '@vercel/analytics/next'
-import { SessionProvider } from '@/components/session-provider'
-import './globals.css'
+import type { Metadata } from "next"
+import { GeistSans } from "geist/font/sans"
+import { GeistMono } from "geist/font/mono"
+import { Analytics } from "@vercel/analytics/next"
+import { Providers } from "./providers"
+import "./globals.css"
 
 export const metadata: Metadata = {
-  title: 'SystemGen - Generador de Software con IA',
-  description: 'Plataforma de generación de software personalizado con inteligencia artificial',
-  generator: 'SystemGen',
+  title: "SystemGen - Generador de Software con IA",
+  description: "Plataforma de generación de software personalizado con inteligencia artificial",
+  generator: "SystemGen",
 }
 
 export default function RootLayout({
@@ -19,9 +19,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
-        <SessionProvider>
-          {children}
-        </SessionProvider>
+        <Providers>{children}</Providers>
         <Analytics />
       </body>
     </html>
