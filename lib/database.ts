@@ -28,6 +28,7 @@ export interface User {
   company?: string;
   department?: string;
   sso_profile?: any;
+  tour_completed: boolean;
   created_at: string;
   updated_at: string;
   last_login_at?: string;
@@ -245,6 +246,54 @@ export class UserService {
       }
     } catch (error) {
       console.error('Error updating user status:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Marca el tour como completado para un usuario
+   */
+  static async markTourCompleted(userId: string): Promise<boolean> {
+    try {
+      const client = await pool.connect();
+      
+      try {
+        await client.query(
+          'UPDATE users SET tour_completed = true WHERE id = $1',
+          [userId]
+        );
+
+        return true;
+      } finally {
+        client.release();
+      }
+    } catch (error) {
+      console.error('Error marking tour as completed:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Verifica si un usuario necesita ver el tour
+   */
+  static async shouldShowTour(userId: string): Promise<boolean> {
+    try {
+      const client = await pool.connect();
+      
+      try {
+        const result = await client.query(
+          'SELECT tour_completed FROM users WHERE id = $1',
+          [userId]
+        );
+
+        if (result.rows.length === 0) return false;
+        
+        return !result.rows[0].tour_completed;
+      } finally {
+        client.release();
+      }
+    } catch (error) {
+      console.error('Error checking tour status:', error);
       return false;
     }
   }
