@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
       role: user.role,
       status: user.status,
       picture_url: user.picture_url,
+      tour_completed: user.tour_completed,
       last_login_at: user.last_login_at,
       created_at: user.created_at,
     });
