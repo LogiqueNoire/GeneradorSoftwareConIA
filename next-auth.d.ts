@@ -32,5 +32,6 @@ declare module 'next-auth/jwt' {
     status?: 'active' | 'inactive' | 'suspended';
     dbUserId?: string;
     accessToken?: string;
+    tourCompleted?: boolean;
   }
 }

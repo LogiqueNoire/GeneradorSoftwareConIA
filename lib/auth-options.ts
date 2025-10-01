@@ -31,12 +31,12 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ user, account, profile }) {
       try {
-        if (!user.email || !account) { 
+        if (!user.email || !account) {  
           return false;
         }
 
         // Guardar/actualizar usuario en la base de datos
-        const dbUser = await UserService.getOrCreateUserFromSSO({
+        const result = await UserService.getOrCreateUserFromSSO({
           email: user.email,
           provider: account.provider,
           ssoUserId: account.providerAccountId || user.id,
@@ -50,9 +50,11 @@ export const authOptions: NextAuthOptions = {
           refreshToken: account.refresh_token || undefined,
         });
 
-        if (!dbUser) { 
+        if (!result) {  
           return false;
         }
+
+        const { user: dbUser, isNewUser } = result;
 
         // Log del evento de login
         await UserService.logAuthEvent({
@@ -64,7 +66,7 @@ export const authOptions: NextAuthOptions = {
         });
 
         return true;
-      } catch (error) { 
+      } catch (error) {  
          
         if (user.email && account) {
           await UserService.logAuthEvent({
@@ -85,7 +87,7 @@ export const authOptions: NextAuthOptions = {
       if (new URL(url).origin === baseUrl) return url;
       return `${baseUrl}/portal`;
     },
-    async jwt({ token, account, user }) {
+    async jwt({ token, account, user, trigger }) {
       // Agregar información adicional al token si es necesario
       if (account && user) {
         token.accessToken = account.access_token;
@@ -98,9 +100,22 @@ export const authOptions: NextAuthOptions = {
             token.role = dbUser.role;
             token.status = dbUser.status;
             token.dbUserId = dbUser.id;
+            token.tourCompleted = dbUser.tour_completed;
           }
         }
       }
+      
+      // Revalidar información cuando se llama session.update()
+      if (trigger === 'update' && token.sub) {
+        const dbUser = await UserService.getUserByEmail(token.email as string);
+        if (dbUser) {
+          token.role = dbUser.role;
+          token.status = dbUser.status;
+          token.dbUserId = dbUser.id;
+          token.tourCompleted = dbUser.tour_completed;
+        }
+      }
+      
       return token;
     },
     async session({ session, token }) {
@@ -112,6 +127,7 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).status = token.status;
         (session.user as any).dbUserId = token.dbUserId;
         (session.user as any).provider = token.provider;
+        (session.user as any).tourCompleted = token.tourCompleted;
       }
       return session;
     },

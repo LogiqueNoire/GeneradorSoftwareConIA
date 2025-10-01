@@ -51,6 +51,7 @@ export interface AuthLog {
 export class UserService {
   /**
    * Obtiene o crea un usuario desde datos de SSO
+   * Retorna { user, isNewUser }
    */
   static async getOrCreateUserFromSSO(ssoData: {
     email: string;
@@ -64,34 +65,81 @@ export class UserService {
     profile?: any;
     accessToken?: string;
     refreshToken?: string;
-  }): Promise<User | null> {
+  }): Promise<{ user: User; isNewUser: boolean } | null> {
     try {
       const client = await pool.connect();
-      
+
       try {
-        // Usar la función PostgreSQL que maneja crear O actualizar
-        const result = await client.query(
-          'SELECT * FROM get_or_create_user_from_sso($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)',
-          [
-            ssoData.email,
-            ssoData.provider,
-            ssoData.ssoUserId,
-            ssoData.name,
-            ssoData.givenName,
-            ssoData.familyName,
-            ssoData.pictureUrl,
-            ssoData.locale,
-            JSON.stringify(ssoData.profile),
-            ssoData.accessToken,
-            ssoData.refreshToken,
-          ]
+        // Primero verificar si el usuario ya existe
+        const existingUser = await client.query(
+          'SELECT * FROM users WHERE email = $1 OR (sso_provider = $2 AND sso_user_id = $3)',
+          [ssoData.email, ssoData.provider, ssoData.ssoUserId]
         );
 
-        return result.rows[0] as User;
+        if (existingUser.rows.length > 0) {
+          // Usuario existente - actualizar
+          const updateResult = await client.query(
+            `UPDATE users SET
+              name = COALESCE($1, name),
+              given_name = COALESCE($2, given_name),
+              family_name = COALESCE($3, family_name),
+              picture_url = COALESCE($4, picture_url),
+              locale = COALESCE($5, locale),
+              sso_profile = COALESCE($6, sso_profile),
+              access_token = $7,
+              refresh_token = $8,
+              last_login_at = NOW(),
+              updated_at = NOW()
+            WHERE id = $9
+            RETURNING *`,
+            [
+              ssoData.name,
+              ssoData.givenName,
+              ssoData.familyName,
+              ssoData.pictureUrl,
+              ssoData.locale,
+              JSON.stringify(ssoData.profile),
+              ssoData.accessToken,
+              ssoData.refreshToken,
+              existingUser.rows[0].id
+            ]
+          );
+          return {
+            user: updateResult.rows[0] as User,
+            isNewUser: false
+          };
+        } else {
+          // Usuario nuevo - crear con tour_completed = false
+          const insertResult = await client.query(
+            `INSERT INTO users (
+              email, sso_provider, sso_user_id, name, given_name, family_name,
+              picture_url, locale, sso_profile, access_token, refresh_token,
+              last_login_at, email_verified, tour_completed
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), true, false)
+            RETURNING *`,
+            [
+              ssoData.email,
+              ssoData.provider,
+              ssoData.ssoUserId,
+              ssoData.name,
+              ssoData.givenName,
+              ssoData.familyName,
+              ssoData.pictureUrl,
+              ssoData.locale,
+              JSON.stringify(ssoData.profile),
+              ssoData.accessToken,
+              ssoData.refreshToken,
+            ]
+          );
+          return {
+            user: insertResult.rows[0] as User,
+            isNewUser: true
+          };
+        }
       } finally {
         client.release();
       }
-    } catch (error) { 
+    } catch (error) {
       return null;
     }
   }
@@ -102,7 +150,7 @@ export class UserService {
   static async getUserByEmail(email: string): Promise<User | null> {
     try {
       const client = await pool.connect();
-      
+
       try {
         const result = await client.query(
           'SELECT * FROM users WHERE email = $1',
@@ -113,7 +161,7 @@ export class UserService {
       } finally {
         client.release();
       }
-    } catch (error) { 
+    } catch (error) {
       return null;
     }
   }
@@ -124,7 +172,7 @@ export class UserService {
   static async updateLastLogin(userId: string): Promise<boolean> {
     try {
       const client = await pool.connect();
-      
+
       try {
         await client.query(
           'UPDATE users SET last_login_at = NOW() WHERE id = $1',
@@ -135,7 +183,7 @@ export class UserService {
       } finally {
         client.release();
       }
-    } catch (error) { 
+    } catch (error) {
       return false;
     }
   }
@@ -155,7 +203,7 @@ export class UserService {
   }): Promise<boolean> {
     try {
       const client = await pool.connect();
-      
+
       try {
         await client.query(
           `INSERT INTO auth_logs (user_id, email, provider, action, ip_address, user_agent, success, error_message)
@@ -177,7 +225,6 @@ export class UserService {
         client.release();
       }
     } catch (error) {
-      console.error('Error logging auth event:', error);
       return false;
     }
   }
@@ -188,7 +235,7 @@ export class UserService {
   static async getAllUsers(): Promise<User[]> {
     try {
       const client = await pool.connect();
-      
+
       try {
         const result = await client.query(
           'SELECT * FROM users ORDER BY created_at DESC'
@@ -199,7 +246,6 @@ export class UserService {
         client.release();
       }
     } catch (error) {
-      console.error('Error getting all users:', error);
       return [];
     }
   }
@@ -210,7 +256,7 @@ export class UserService {
   static async updateUserRole(userId: string, role: 'admin' | 'user' | 'viewer'): Promise<boolean> {
     try {
       const client = await pool.connect();
-      
+
       try {
         await client.query(
           'UPDATE users SET role = $1 WHERE id = $2',
@@ -222,7 +268,6 @@ export class UserService {
         client.release();
       }
     } catch (error) {
-      console.error('Error updating user role:', error);
       return false;
     }
   }
@@ -233,7 +278,7 @@ export class UserService {
   static async updateUserStatus(userId: string, status: 'active' | 'inactive' | 'suspended'): Promise<boolean> {
     try {
       const client = await pool.connect();
-      
+
       try {
         await client.query(
           'UPDATE users SET status = $1 WHERE id = $2',
@@ -245,7 +290,6 @@ export class UserService {
         client.release();
       }
     } catch (error) {
-      console.error('Error updating user status:', error);
       return false;
     }
   }
@@ -256,7 +300,7 @@ export class UserService {
   static async markTourCompleted(userId: string): Promise<boolean> {
     try {
       const client = await pool.connect();
-      
+
       try {
         await client.query(
           'UPDATE users SET tour_completed = true WHERE id = $1',
@@ -268,7 +312,6 @@ export class UserService {
         client.release();
       }
     } catch (error) {
-      console.error('Error marking tour as completed:', error);
       return false;
     }
   }
@@ -279,7 +322,7 @@ export class UserService {
   static async shouldShowTour(userId: string): Promise<boolean> {
     try {
       const client = await pool.connect();
-      
+
       try {
         const result = await client.query(
           'SELECT tour_completed FROM users WHERE id = $1',
@@ -287,13 +330,12 @@ export class UserService {
         );
 
         if (result.rows.length === 0) return false;
-        
+
         return !result.rows[0].tour_completed;
       } finally {
         client.release();
       }
     } catch (error) {
-      console.error('Error checking tour status:', error);
       return false;
     }
   }
