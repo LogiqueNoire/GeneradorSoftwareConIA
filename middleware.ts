@@ -2,13 +2,14 @@ import { withAuth } from "next-auth/middleware"
 import { NextResponse } from "next/server"
 
 export default withAuth(
-  function middleware(req) {
+  async function middleware(req) {
     const token = req.nextauth.token
     const isAuth = !!token
     const isAuthPage = req.nextUrl.pathname.startsWith('/login')
     const isPublicPage = ['/', '/blog', '/support'].some(path => 
       req.nextUrl.pathname === path || req.nextUrl.pathname.startsWith(path)
     ) 
+    
     // Permitir acceso a páginas públicas sin autenticación
     if (isPublicPage && !isAuthPage) { 
       return NextResponse.next()
@@ -29,6 +30,14 @@ export default withAuth(
     // Redirigir a portal si ya está autenticado y trata de acceder a login
     if (isAuth && isAuthPage) { 
       return NextResponse.redirect(new URL('/portal', req.url))
+    }
+
+    // Verificar permisos básicos usando la información del token (sin DB)
+    if (isAuth && token && !isPublicPage && !isAuthPage) {
+      // Verificar permisos específicos para rutas admin usando token
+      if (req.nextUrl.pathname.startsWith('/intranet') && token.role !== 'admin') {
+        return NextResponse.redirect(new URL('/portal?error=Unauthorized', req.url));
+      } 
     }
  
     return NextResponse.next()

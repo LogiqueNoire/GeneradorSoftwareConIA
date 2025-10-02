@@ -382,39 +382,7 @@ export default function PortalPage() {
               ))}
             </div>
           </CardContent>
-        </Card>
-
-        {/* Sección de información sobre almacenamiento */}
-        <Card className="mt-8 border-0 shadow-lg bg-gradient-to-r from-amber-50 to-orange-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-amber-800">
-              <Database className="w-5 h-5" />
-              💾 Información sobre Almacenamiento de Datos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h4 className="font-semibold text-amber-800 mb-2">🔐 Autenticación (Actual)</h4>
-                <div className="text-sm text-amber-700 space-y-1">
-                  <p>• <strong>Sesiones:</strong> Cookies cifradas del navegador</p>
-                  <p>• <strong>Tokens:</strong> JWT en memoria y cookies seguras</p>
-                  <p>• <strong>Duración:</strong> 30 días</p>
-                  <p>• <strong>Proveedor:</strong> Google OAuth</p>
-                </div>
-              </div>
-              <div>
-                <h4 className="font-semibold text-amber-800 mb-2">🗄️ Datos de la App (Próximo paso)</h4>
-                <div className="text-sm text-amber-700 space-y-1">
-                  <p>• <strong>Actual:</strong> Solo en memoria (se pierde al recargar)</p>
-                  <p>• <strong>Recomendado:</strong> PostgreSQL + Prisma</p>
-                  <p>• <strong>Alternativas:</strong> MongoDB, Supabase, PlanetScale</p>
-                  <p>• <strong>Para persistir:</strong> Configurar DATABASE_URL</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        </Card> 
       </div>
     </div>
   )
