@@ -374,7 +374,7 @@ export default function HomePageClient() {
                         playsInline
                         className="w-full h-full object-cover rounded-[50px]"
                     >
-                        <source src="/video.mp4" type="video/mp4" />
+                        <source src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/git-blob/prj_bXwOyBtgSQpnEm9p2YPLzpDBPjrq/qujonS8R_r-JZrwsR3zIP-/public/video.mp4" type="video/mp4" />
                     </video>
 
                     {/* Overlay para borde suave blanco */}
