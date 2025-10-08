@@ -63,27 +63,50 @@ export function ProactiveChatbot({ isVisible, userLevel, onClose }: ProactiveCha
     }
   }, [isVisible])
 
-  const handleSendMessage = (content: string) => {
-    if (!content.trim()) return
+  const handleSendMessage = async (content: string) => {
+  if (!content.trim()) return;
 
-    const userMessage: Message = {
+  const userMessage: Message = {
+    id: Date.now().toString(),
+    type: "user",
+    content,
+    timestamp: new Date(),
+  };
+
+  setMessages((prev) => [...prev, userMessage]);
+  setInputValue("");
+  setIsTyping(true);
+
+  try {
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: content }),
+    });
+
+    const data = await response.json();
+    const botMessage: Message = {
       id: Date.now().toString(),
-      type: "user",
-      content,
+      type: "bot",
+      content: data.reply || "No obtuve respuesta, intenta de nuevo.",
       timestamp: new Date(),
-    }
+    };
 
-    setMessages((prev) => [...prev, userMessage])
-    setInputValue("")
-    setIsTyping(true)
-
-    // Simulate AI response
-    setTimeout(() => {
-      const botResponse = generateBotResponse(content)
-      setMessages((prev) => [...prev, botResponse])
-      setIsTyping(false)
-    }, 1500)
+    setMessages((prev) => [...prev, botMessage]);
+  } catch (error) {
+    console.error("Error enviando mensaje:", error);
+    const errorMessage: Message = {
+      id: Date.now().toString(),
+      type: "bot",
+      content: "Ocurrió un error al conectar con la IA.",
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, errorMessage]);
+  } finally {
+    setIsTyping(false);
   }
+};
+
 
   const generateBotResponse = (userInput: string): Message => {
     const input = userInput.toLowerCase()
