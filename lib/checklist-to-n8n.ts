@@ -18,15 +18,15 @@ export interface ChecklistItemData {
 }
 
 export interface CustomerInfo {
-  customerId?: string
+  customerId: string
   companyName?: string
-  email?: string
+  email: string
   firstName?: string
   lastName?: string
   template?: string
-  modules?: string[]
-  totalPaid?: number
-  paymentDate?: string
+  modules: string[]
+  totalPaid: number
+  paymentDate: string
 }
 
 export interface N8nPayload {
@@ -40,7 +40,140 @@ export class ChecklistToN8nService {
   private static N8N_WEBHOOK_URL = process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL || 'http://localhost:5678/webhook-test/c11bd2cd-ad24-403f-8718-571562b90fd1'
   
   /**
+   * Obtiene los datos completos del usuario (compras + configuraciones) y los envía a N8N
+   */
+  static async sendCompleteUserDataToN8n(): Promise<{
+    success: boolean
+    deploymentId?: string
+    orderId?: string
+    error?: string
+  }> {
+    try {
+      
+      // 1. Obtener perfil completo del usuario desde la tabla users
+      const userResponse = await fetch('/api/user/profile')
+      if (!userResponse.ok) {
+        throw new Error(`Error obteniendo perfil de usuario: ${userResponse.status}`)
+      }
+      
+      const userResult = await userResponse.json()
+      if (!userResult.success || !userResult.user) {
+        throw new Error('No se encontró el perfil del usuario')
+      }
+
+      const userProfile = userResult.user
+
+      // 2. Obtener datos de compras del usuario
+      const purchasesResponse = await fetch('/api/user/purchases')
+      if (!purchasesResponse.ok) {
+        throw new Error(`Error obteniendo compras: ${purchasesResponse.status}`)
+      }
+      
+      const purchasesResult = await purchasesResponse.json()
+      if (!purchasesResult.success || !purchasesResult.data) {
+        throw new Error('No se encontraron compras del usuario')
+      }
+
+      // 3. Obtener configuraciones de módulos guardadas
+      const configResponse = await fetch('/api/module-configurations/load')
+      let savedConfigurations: any = {}
+      
+      if (configResponse.ok) {
+        const configResult = await configResponse.json()
+        if (configResult.success) {
+          savedConfigurations = configResult.configurations
+        }
+      }
+
+      // 4. Preparar datos en el formato que necesita N8N
+      const userData = purchasesResult.data
+      
+      // Transformar las configuraciones al formato correcto
+      const moduleConfigurations = userData.moduleConfigurations.map((module: any) => {
+        // Usar configuraciones guardadas o las que vienen de la API
+        const savedModuleConfig = savedConfigurations[module.moduleId]?.items || {}
+        
+        // Combinar datos de la BD con configuraciones guardadas
+        const items = module.items.map((item: any) => {
+          const savedItem = savedModuleConfig[item.id]
+          return {
+            id: item.id,
+            title: item.title,
+            type: item.type,
+            value: savedItem?.value || item.value || "",
+            completed: savedItem?.completed || item.completed || false,
+            required: item.required
+          }
+        })
+
+        // Calcular porcentaje de completación actualizado
+        const completedItems = items.filter((item: any) => item.completed).length
+        const completionPercentage = items.length > 0 ? (completedItems / items.length) * 100 : 0
+
+        return {
+          moduleId: module.moduleId,
+          moduleName: module.moduleName,
+          completionPercentage: Math.round(completionPercentage),
+          items
+        }
+      })
+
+      // 5. Preparar payload completo para N8N usando datos reales del usuario
+      const payload: N8nPayload = {
+        customerInfo: {
+          customerId: userProfile.id || `CUST-${Date.now()}`,
+          companyName: userProfile.company || userData.customerInfo.companyName || "Empresa Sin Nombre",
+          email: userProfile.email,
+          firstName: userProfile.given_name || userData.customerInfo.firstName || "Usuario",
+          lastName: userProfile.family_name || userData.customerInfo.lastName || "Sin Apellido",
+          template: userData.customerInfo.template || "default_template",
+          modules: userData.customerInfo.modules || [],
+          totalPaid: userData.customerInfo.totalPaid || 0,
+          paymentDate: userData.customerInfo.paymentDate || new Date().toISOString().split('T')[0]
+        },
+        moduleConfigurations,
+        timestamp: new Date().toISOString(),
+        deploymentTrigger: true
+      }
+
+      // 6. Enviar a N8N
+      const response = await fetch(this.N8N_WEBHOOK_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      })
+
+      if (!response.ok) {
+        throw new Error(`Error en N8N: ${response.status} - ${response.statusText}`)
+      }
+
+      let result: any = {}
+      try {
+        result = await response.json()
+      } catch (e) {
+        // N8N puede devolver texto plano, no JSON
+        result = { message: 'Webhook enviado correctamente' }
+      }
+      
+      return {
+        success: true,
+        deploymentId: result.deploymentId || `DEPLOY-${Date.now()}`,
+        orderId: result.orderId || userProfile.id
+      }
+
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Error desconocido'
+      }
+    }
+  }
+
+  /**
    * Envía los datos del checklist completado a n8n para procesamiento
+   * @deprecated Usar sendCompleteUserDataToN8n() en su lugar
    */
   static async sendChecklistToN8n(
     moduleConfigurations: ChecklistData[],
@@ -60,8 +193,6 @@ export class ChecklistToN8nService {
         deploymentTrigger: true
       }
 
-      console.log('[ChecklistToN8n] Enviando datos a n8n:', payload)
-
       // Enviar a n8n (sin API key ya que no la necesitas)
       const response = await fetch(this.N8N_WEBHOOK_URL, {
         method: 'POST',
@@ -77,8 +208,6 @@ export class ChecklistToN8nService {
 
       const result = await response.json()
       
-      console.log('[ChecklistToN8n] Respuesta de n8n:', result)
-
       return {
         success: true,
         deploymentId: result.deploymentId,
@@ -97,7 +226,7 @@ export class ChecklistToN8nService {
   /**
    * Obtiene información del cliente desde localStorage
    */
-  private static getCustomerInfoFromStorage(): CustomerInfo {
+  private static getCustomerInfoFromStorage(): any {
     if (typeof window === 'undefined') return {}
 
     try {
@@ -172,37 +301,21 @@ export class ChecklistToN8nService {
   }
 
   /**
-   * Inicia el proceso de deployment enviando datos a n8n
+   * Inicia el proceso de deployment enviando datos completos a N8N
    */
-  static async initiateDeployment(
-    checklists: any[],
-    moduleProgress: Record<string, number>
-  ): Promise<{
+  static async initiateDeployment(): Promise<{
     success: boolean
     deploymentId?: string
     orderId?: string
     error?: string
     warnings?: string[]
   }> {
-    // Transformar datos
-    const checklistData = this.transformChecklistData(checklists, moduleProgress)
-    
-    // Validar
-    const validation = this.validateForDeployment(checklistData)
-    
-    if (!validation.valid) {
-      return {
-        success: false,
-        error: `Faltan configuraciones requeridas: ${validation.errors.join('; ')}`
-      }
-    }
-
-    // Enviar a n8n
-    const result = await this.sendChecklistToN8n(checklistData)
+    // Enviar datos completos directamente a N8N
+    const result = await this.sendCompleteUserDataToN8n()
     
     return {
       ...result,
-      warnings: validation.warnings
+      warnings: []
     }
   }
 }
@@ -212,15 +325,12 @@ export function useChecklistDeployment() {
   const [isDeploying, setIsDeploying] = useState(false)
   const [deploymentResult, setDeploymentResult] = useState<any>(null)
 
-  const startDeployment = async (
-    checklists: any[],
-    moduleProgress: Record<string, number>
-  ) => {
+  const startDeployment = async () => {
     setIsDeploying(true)
     setDeploymentResult(null)
 
     try {
-      const result = await ChecklistToN8nService.initiateDeployment(checklists, moduleProgress)
+      const result = await ChecklistToN8nService.initiateDeployment()
       setDeploymentResult(result)
       return result
     } finally {

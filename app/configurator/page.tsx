@@ -3,6 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
@@ -42,7 +43,6 @@ interface Module {
   description: string
   icon: any
   monthlyPrice: number
-  setupPrice: number
   category: string
 }
 
@@ -51,8 +51,7 @@ interface Template {
   name: string
   description: string
   icon: any
-  basePrice: number
-  setupPrice: number
+  monthlyPrice: number
   includedModules: string[]
 }
 
@@ -62,8 +61,7 @@ const templates: Template[] = [
     name: "Clínica Dental",
     description: "Sistema completo para gestión de citas, pacientes y facturación dental",
     icon: Calendar,
-    basePrice: 89,
-    setupPrice: 299,
+    monthlyPrice: 89,
     includedModules: ["appointments", "patients", "billing"],
   },
   {
@@ -71,8 +69,7 @@ const templates: Template[] = [
     name: "Tienda Online",
     description: "Plataforma e-commerce con pagos, inventario y análisis de ventas",
     icon: ShoppingCart,
-    basePrice: 129,
-    setupPrice: 499,
+    monthlyPrice: 129,
     includedModules: ["payments", "inventory", "analytics"],
   },
   {
@@ -80,142 +77,24 @@ const templates: Template[] = [
     name: "Consultora",
     description: "CRM avanzado para gestión de clientes, proyectos y facturación",
     icon: Users,
-    basePrice: 79,
-    setupPrice: 199,
+    monthlyPrice: 79,
     includedModules: ["crm", "projects", "billing"],
   },
 ]
 
-const modules: Module[] = [
-  {
-    id: "appointments",
-    name: "Agendamiento de Citas",
-    description: "Sistema automatizado de reservas con confirmaciones por WhatsApp",
-    icon: Calendar,
-    monthlyPrice: 29,
-    setupPrice: 99,
-    category: "core",
-  },
-  {
-    id: "payments",
-    name: "Pagos por WhatsApp",
-    description: "Procesamiento de pagos integrado con mensajería",
-    icon: CreditCard,
-    monthlyPrice: 39,
-    setupPrice: 149,
-    category: "core",
-  },
-  {
-    id: "chatbot",
-    name: "Chatbot IA",
-    description: "Asistente virtual entrenado para tu industria",
-    icon: MessageSquare,
-    monthlyPrice: 49,
-    setupPrice: 199,
-    category: "ai",
-  },
-  {
-    id: "analytics",
-    name: "Análisis de Sentimiento",
-    description: "IA que analiza feedback de clientes automáticamente",
-    icon: BarChart3,
-    monthlyPrice: 59,
-    setupPrice: 249,
-    category: "ai",
-  },
-  {
-    id: "security",
-    name: "Seguridad Avanzada",
-    description: "Autenticación 2FA y monitoreo de seguridad",
-    icon: Shield,
-    monthlyPrice: 19,
-    setupPrice: 79,
-    category: "security",
-  },
-  {
-    id: "database",
-    name: "Base de Datos Premium",
-    description: "Almacenamiento escalable con backups automáticos",
-    icon: Database,
-    monthlyPrice: 25,
-    setupPrice: 99,
-    category: "infrastructure",
-  },
-  {
-    id: "email",
-    name: "Marketing por Email",
-    description: "Campañas automatizadas y segmentación inteligente",
-    icon: Mail,
-    monthlyPrice: 35,
-    setupPrice: 129,
-    category: "marketing",
-  },
-  {
-    id: "phone",
-    name: "Integración Telefónica",
-    description: "Sistema de llamadas con grabación y transcripción IA",
-    icon: Phone,
-    monthlyPrice: 45,
-    setupPrice: 179,
-    category: "communication",
-  },
-  {
-    id: "patients",
-    name: "Gestión de Pacientes",
-    description: "Historial médico digital y recordatorios automáticos",
-    icon: Users,
-    monthlyPrice: 39,
-    setupPrice: 149,
-    category: "healthcare",
-  },
-  {
-    id: "inventory",
-    name: "Control de Inventario",
-    description: "Gestión automática de stock con alertas inteligentes",
-    icon: Database,
-    monthlyPrice: 29,
-    setupPrice: 119,
-    category: "business",
-  },
-  {
-    id: "billing",
-    name: "Facturación Automática",
-    description: "Generación y envío automático de facturas",
-    icon: CreditCard,
-    monthlyPrice: 25,
-    setupPrice: 89,
-    category: "finance",
-  },
-  {
-    id: "crm",
-    name: "CRM Avanzado",
-    description: "Gestión completa de relaciones con clientes",
-    icon: Users,
-    monthlyPrice: 49,
-    setupPrice: 199,
-    category: "business",
-  },
-  {
-    id: "projects",
-    name: "Gestión de Proyectos",
-    description: "Seguimiento de tareas y tiempo con reportes automáticos",
-    icon: BarChart3,
-    monthlyPrice: 35,
-    setupPrice: 139,
-    category: "business",
-  },
-]
+// Función para asignar iconos según categoría
 
 export default function ConfiguratorPage() {
   const [step, setStep] = useState(1)
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null)
   const [selectedModules, setSelectedModules] = useState<string[]>([])
   const [totalMonthly, setTotalMonthly] = useState(0)
-  const [totalSetup, setTotalSetup] = useState(0)
   const [showChatbot, setShowChatbot] = useState(false)
   const [chatMessages, setChatMessages] = useState<Array<{ role: "user" | "assistant"; content: string }>>([])
   const [chatInput, setChatInput] = useState("")
   const [isTyping, setIsTyping] = useState(false)
+  const [modules, setModules] = useState<Module[]>([])
+  const [isLoadingModules, setIsLoadingModules] = useState(true)
   const [userProfile, setUserProfile] = useState({
     name: "Juan Carlos",
     company: "Innovación Digital SAS",
@@ -227,14 +106,10 @@ export default function ConfiguratorPage() {
     firstName: "Juan Carlos",
     lastName: "Rodríguez",
     email: "juan.rodriguez@miempresa.com",
-    company: "Innovación Digital SAS",
+    phone: "+57 300 123 4567",
+    postalCode: "110111",
     acceptTerms: false,
     acceptEmails: false,
-  })
-  const [registrationData, setRegistrationData] = useState({
-    email: "admin@miempresa.com",
-    password: "SystemGen2024!",
-    confirmPassword: "SystemGen2024!",
   })
   const [paymentData, setPaymentData] = useState({
     cardNumber: "4242 4242 4242 4242",
@@ -244,7 +119,91 @@ export default function ConfiguratorPage() {
   })
   const [isProcessing, setIsProcessing] = useState(false)
   const [formErrors, setFormErrors] = useState<string[]>([])
-  const [paymentStep, setPaymentStep] = useState<"form" | "register" | "payment" | "processing">("form")
+  const [paymentStep, setPaymentStep] = useState<"form" | "payment" | "processing">("form")
+  const [paymentMethod, setPaymentMethod] = useState<"stripe" | "paypal">("stripe")
+
+  // Cargar módulos desde la base de datos
+  useEffect(() => {
+    const loadModules = async () => {
+      try {
+        setIsLoadingModules(true)
+        const response = await fetch('/api/modules')
+        const data = await response.json()
+        
+        if (data.success) {
+          // Mapear los módulos de la BD al formato del configurador
+          const mappedModules = data.modules.map((module: any) => ({
+            id: module.id.replace('module_', ''), // Remover prefijo para compatibilidad
+            name: module.name,
+            description: module.description,
+            icon: getModuleIcon(module.category), // Función para asignar iconos
+            monthlyPrice: Number(module.monthly_price), // Convertir a número
+            category: module.category,
+          }))
+          setModules(mappedModules)
+        } else {
+          setModules(getStaticModules())
+        }
+      } catch (error) {
+        setModules(getStaticModules())
+      } finally {
+        setIsLoadingModules(false)
+      }
+    }
+
+    loadModules()
+  }, [])
+
+  // Función para asignar iconos según categoría
+  const getModuleIcon = (category: string) => {
+    switch (category) {
+      case 'core': return Calendar
+      case 'ai': return MessageSquare
+      case 'communication': return Phone
+      case 'marketing': return Mail
+      case 'finance': return CreditCard
+      case 'healthcare': return Users
+      case 'security': return Shield
+      case 'infrastructure': return Database
+      default: return BarChart3
+    }
+  }
+
+  // Módulos estáticos como fallback
+  const getStaticModules = (): Module[] => [
+    {
+      id: "appointments",
+      name: "Agendamiento de Citas",
+      description: "Sistema automatizado de reservas con confirmaciones por WhatsApp",
+      icon: Calendar,
+      monthlyPrice: 29,
+      category: "core",
+    },
+    {
+      id: "payments",
+      name: "Pagos por WhatsApp",
+      description: "Procesamiento de pagos integrado con mensajería",
+      icon: CreditCard,
+      monthlyPrice: 39,
+      category: "core",
+    },
+    {
+      id: "chatbot",
+      name: "Chatbot IA",
+      description: "Asistente virtual entrenado para tu industria",
+      icon: MessageSquare,
+      monthlyPrice: 49,
+      category: "ai",
+    },
+    {
+      id: "analytics",
+      name: "Análisis de Sentimiento",
+      description: "IA que analiza feedback de clientes automáticamente",
+      icon: BarChart3,
+      monthlyPrice: 59,
+      category: "ai",
+    },
+  ]
 
   useEffect(() => {
     calculatePricing()
@@ -266,20 +225,29 @@ export default function ConfiguratorPage() {
     return () => clearTimeout(timer)
   }, [step, showChatbot, userProfile])
 
+  // Función para formatear precios
+  const formatPrice = (price: number | string) => {
+    const numPrice = Number(price) || 0
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(numPrice).replace('$', '')
+  }
+
   const calculatePricing = () => {
-    let monthly = selectedTemplate?.basePrice || 0
-    let setup = selectedTemplate?.setupPrice || 0
+    let monthly = Number(selectedTemplate?.monthlyPrice || 0)
 
     selectedModules.forEach((moduleId) => {
       const module = modules.find((m) => m.id === moduleId)
       if (module && !selectedTemplate?.includedModules.includes(moduleId)) {
-        monthly += module.monthlyPrice
-        setup += module.setupPrice
+        monthly += Number(module.monthlyPrice || 0)
       }
     })
 
-    setTotalMonthly(monthly)
-    setTotalSetup(setup)
+    // Asegurar que el total sea un número válido
+    setTotalMonthly(Math.round(monthly * 100) / 100) // Redondear a 2 decimales
   }
 
   const handleTemplateSelect = (template: Template) => {
@@ -320,32 +288,6 @@ export default function ConfiguratorPage() {
 
   const progress = (step / 3) * 100
 
-  const validateRegistration = () => {
-    const errors: string[] = []
-
-    if (!registrationData.email.trim()) errors.push("El email es requerido")
-    if (!registrationData.password.trim()) errors.push("La contraseña es requerida")
-    if (!registrationData.confirmPassword.trim()) errors.push("Confirma tu contraseña")
-
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (registrationData.email && !emailRegex.test(registrationData.email)) {
-      errors.push("El email no tiene un formato válido")
-    }
-
-    // Password validation
-    if (registrationData.password && registrationData.password.length < 8) {
-      errors.push("La contraseña debe tener al menos 8 caracteres")
-    }
-
-    if (registrationData.password !== registrationData.confirmPassword) {
-      errors.push("Las contraseñas no coinciden")
-    }
-
-    setFormErrors(errors)
-    return errors.length === 0
-  }
-
   const validatePaymentForm = () => {
     const errors: string[] = []
 
@@ -353,7 +295,8 @@ export default function ConfiguratorPage() {
     if (!formData.firstName.trim()) errors.push("El nombre es requerido")
     if (!formData.lastName.trim()) errors.push("El apellido es requerido")
     if (!formData.email.trim()) errors.push("El email es requerido")
-    if (!formData.company.trim()) errors.push("El nombre de la empresa es requerido")
+    if (!formData.phone.trim()) errors.push("El teléfono es requerido")
+    if (!formData.postalCode.trim()) errors.push("El código postal es requerido")
     if (!formData.acceptTerms) errors.push("Debes aceptar los términos de servicio")
 
     // Validate payment info
@@ -390,7 +333,8 @@ export default function ConfiguratorPage() {
     if (!formData.firstName.trim()) errors.push("El nombre es requerido")
     if (!formData.lastName.trim()) errors.push("El apellido es requerido")
     if (!formData.email.trim()) errors.push("El email es requerido")
-    if (!formData.company.trim()) errors.push("El nombre de la empresa es requerido")
+    if (!formData.phone.trim()) errors.push("El teléfono es requerido")
+    if (!formData.postalCode.trim()) errors.push("El código postal es requerido")
     if (!formData.acceptTerms) errors.push("Debes aceptar los términos de servicio")
 
     setFormErrors(errors)
@@ -399,13 +343,6 @@ export default function ConfiguratorPage() {
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
-    if (formErrors.length > 0) {
-      setFormErrors([])
-    }
-  }
-
-  const handleRegistrationChange = (field: string, value: string) => {
-    setRegistrationData((prev) => ({ ...prev, [field]: value }))
     if (formErrors.length > 0) {
       setFormErrors([])
     }
@@ -444,37 +381,7 @@ export default function ConfiguratorPage() {
     if (!validateForm()) {
       return
     }
-    setPaymentStep("register")
-  }
-
-  const proceedToPaymentFromRegistration = async () => {
-    if (!validateRegistration()) {
-      return
-    }
-
-    setIsProcessing(true)
-
-    try {
-      // Simulate user registration
-      console.log("[v0] Creating user account...")
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      console.log("[v0] User registered successfully:", {
-        email: registrationData.email,
-        accountCreated: new Date().toISOString(),
-      })
-
-      // Store registration data
-      localStorage.setItem("userRegistered", "true")
-      localStorage.setItem("userEmail", registrationData.email)
-
-      setPaymentStep("payment")
-    } catch (error) {
-      console.error("[v0] Registration error:", error)
-      setFormErrors(["Error al crear la cuenta. Por favor intenta nuevamente."])
-    } finally {
-      setIsProcessing(false)
-    }
+    setPaymentStep("payment")
   }
 
   const handlePayment = async () => {
@@ -487,16 +394,17 @@ export default function ConfiguratorPage() {
 
     try {
       // Simulate Stripe payment processing
-      console.log("[v0] Initiating Stripe payment...")
       await new Promise((resolve) => setTimeout(resolve, 1500))
 
-      console.log("[v0] Processing payment with Stripe:", {
-        amount: (totalMonthly + totalSetup) * 100, // Stripe uses cents
+      // Simulate payment data processing
+      const paymentPayload = {
+        amount: totalMonthly * 100, // Stripe uses cents
         currency: "usd",
         customer: {
           name: `${formData.firstName} ${formData.lastName}`,
           email: formData.email,
-          company: formData.company,
+          phone: formData.phone,
+          postalCode: formData.postalCode,
         },
         card: {
           number: paymentData.cardNumber.replace(/\s/g, ""),
@@ -508,13 +416,36 @@ export default function ConfiguratorPage() {
           template: selectedTemplate?.name,
           modules: selectedModules.join(","),
           monthly_price: totalMonthly,
-          setup_price: totalSetup,
-          registered_email: registrationData.email,
+          registered_email: formData.email,
         },
-      })
+      }
 
       await new Promise((resolve) => setTimeout(resolve, 1000))
-      console.log("[v0] Payment successful! Redirecting to portal...")
+
+      // Guardar orden en base de datos
+      try {
+        const orderResponse = await fetch('/api/orders', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            customerInfo: {
+              ...formData,
+              registeredEmail: formData.email,
+              template: selectedTemplate?.name,
+            },
+            selectedModules,
+            totalAmount: totalMonthly,
+            paymentMethod: 'stripe',
+            paymentReference: 'stripe_payment_intent_demo'
+          })
+        });
+
+        const orderData = await orderResponse.json();
+      } catch (error) {
+        console.error('[Payment] Error saving order:', error);
+      }
 
       // Store payment success in localStorage for portal access
       localStorage.setItem("paymentCompleted", "true")
@@ -522,10 +453,10 @@ export default function ConfiguratorPage() {
         "customerData",
         JSON.stringify({
           ...formData,
-          registeredEmail: registrationData.email,
+          registeredEmail: formData.email,
           template: selectedTemplate?.name,
           modules: selectedModules,
-          totalPaid: totalMonthly + totalSetup,
+          totalPaid: totalMonthly,
           paymentDate: new Date().toISOString(),
         }),
       )
@@ -555,7 +486,7 @@ export default function ConfiguratorPage() {
       let response = ""
 
       if (userMessage.toLowerCase().includes("precio") || userMessage.toLowerCase().includes("costo")) {
-        response = `Basándome en tu configuración actual, el precio mensual es $${totalMonthly} con un setup de $${totalSetup}. Para ${userProfile.industry}, esto representa un ROI del 300% en promedio. ¿Te gustaría que ajuste algún módulo para optimizar el precio?`
+        response = `Basándome en tu configuración actual, el precio mensual es $${totalMonthly}. Para ${userProfile.industry}, esto representa un ROI del 300% en promedio. ¿Te gustaría que ajuste algún módulo para optimizar el precio?`
       } else if (userMessage.toLowerCase().includes("recomend") || userMessage.toLowerCase().includes("suger")) {
         response = `Para ${userProfile.company} en el sector ${userProfile.industry}, recomiendo la plantilla E-commerce con módulos de IA y Analytics. Esto te dará un 40% más de conversiones. ¿Quieres que la configure automáticamente?`
       } else if (
@@ -564,7 +495,7 @@ export default function ConfiguratorPage() {
         userMessage.toLowerCase().includes("yes")
       ) {
         if (selectedTemplate) {
-          response = `¡Perfecto! He optimizado tu configuración. El precio final es $${totalMonthly + totalSetup} el primer mes, luego $${totalMonthly}/mes. Esta configuración es ideal para tus necesidades. ¿Procedemos con la orden?`
+          response = `¡Perfecto! He optimizado tu configuración. El precio final es $${totalMonthly}/mes. Esta configuración es ideal para tus necesidades. ¿Procedemos con la orden?`
         } else {
           response = `¡Excelente! Te recomiendo empezar con la plantilla E-commerce Avanzado. Incluye todo lo que necesitas para tu industria. ¿La seleccionamos?`
         }
@@ -630,12 +561,8 @@ export default function ConfiguratorPage() {
                       <CardContent>
                         <div className="space-y-4">
                           <div className="flex justify-between items-center">
-                            <span className="text-sm text-muted-foreground">Precio base mensual:</span>
-                            <span className="font-semibold">${template.basePrice}/mes</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-muted-foreground">Setup inicial:</span>
-                            <span className="font-semibold">${template.setupPrice}</span>
+                            <span className="text-sm text-muted-foreground">Precio mensual:</span>
+                            <span className="font-semibold">${formatPrice(template.monthlyPrice)}/mes</span>
                           </div>
                           <Separator />
                           <div>
@@ -644,7 +571,7 @@ export default function ConfiguratorPage() {
                               {template.includedModules.map((moduleId) => {
                                 const module = modules.find((m) => m.id === moduleId)
                                 return module ? (
-                                  <Badge key={moduleId} variant="secondary" className="text-xs">
+                                  <Badge key={moduleId} variant="secondary" className="text-xs text-white">
                                     {module.name}
                                   </Badge>
                                 ) : null
@@ -685,20 +612,16 @@ export default function ConfiguratorPage() {
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-muted-foreground">Precio mensual:</span>
-                        <span className="text-2xl font-bold text-primary">${totalMonthly}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">Setup inicial:</span>
-                        <span className="text-lg font-semibold">${totalSetup}</span>
+                        <span className="text-2xl font-bold text-primary">${formatPrice(totalMonthly)}</span>
                       </div>
                       <Separator />
                       <div className="text-center">
-                        <p className="text-sm text-muted-foreground mb-2">Total primer mes:</p>
-                        <p className="text-3xl font-bold text-foreground">${totalMonthly + totalSetup}</p>
+                        <p className="text-sm text-muted-foreground mb-2">Total mensual:</p>
+                        <p className="text-3xl font-bold text-foreground">${formatPrice(totalMonthly)}</p>
                       </div>
-                      {totalSetup + totalMonthly > 5000 && (
+                      {totalMonthly > 200 && (
                         <div className="bg-accent/10 border border-accent/20 rounded-lg p-4">
-                          <p className="text-sm text-accent-foreground font-medium mb-2">
+                          <p className="text-sm text-accent-foreground font-medium mb-2 text-black">
                             🚀 Solución Enterprise Detectada
                           </p>
                           <p className="text-xs text-muted-foreground mb-3">
@@ -720,94 +643,101 @@ export default function ConfiguratorPage() {
               </div>
 
               <div className="space-y-8 max-w-4xl">
-                {categories.map((category) => {
-                  const categoryModules = getModulesByCategory(category.id)
-                  if (categoryModules.length === 0) return null
+                {isLoadingModules ? (
+                  <div className="text-center py-12">
+                    <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-primary" />
+                    <h3 className="text-lg font-semibold mb-2">Cargando módulos disponibles...</h3>
+                    <p className="text-muted-foreground">Obteniendo la información más actualizada desde la base de datos</p>
+                  </div>
+                ) : (
+                  categories.map((category) => {
+                    const categoryModules = getModulesByCategory(category.id)
+                    if (categoryModules.length === 0) return null
 
-                  return (
-                    <div key={category.id}>
-                      <div className="mb-6">
-                        <h2 className="text-2xl font-bold text-foreground mb-2">{category.name}</h2>
-                        <p className="text-muted-foreground">{category.description}</p>
-                      </div>
+                    return (
+                      <div key={category.id}>
+                        <div className="mb-6">
+                          <h2 className="text-2xl font-bold text-foreground mb-2">{category.name}</h2>
+                          <p className="text-muted-foreground">{category.description}</p>
+                        </div>
 
-                      <div className="grid md:grid-cols-2 gap-4">
-                        {categoryModules.map((module) => {
-                          const Icon = module.icon
-                          const included = isModuleIncluded(module.id)
-                          const selected = isModuleSelected(module.id)
+                        <div className="grid md:grid-cols-2 gap-4">
+                          {categoryModules.map((module) => {
+                            const Icon = module.icon
+                            const included = isModuleIncluded(module.id)
+                            const selected = isModuleSelected(module.id)
 
-                          return (
-                            <Card
-                              key={module.id}
-                              className={`cursor-pointer transition-all duration-200 ${included
-                                ? "border-primary bg-primary/5"
-                                : selected
-                                  ? "border-accent bg-accent/5"
-                                  : "hover:shadow-md"
-                                }`}
-                              onClick={() => !included && toggleModule(module.id)}
-                            >
-                              <CardContent className="p-4">
-                                <div className="flex items-start justify-between">
-                                  <div className="flex items-start gap-3 flex-1">
-                                    <div
-                                      className={`w-10 h-10 rounded-lg flex items-center justify-center ${included ? "bg-primary/20" : selected ? "bg-accent/20" : "bg-muted"
-                                        }`}
-                                    >
-                                      <Icon
-                                        className={`w-5 h-5 ${included ? "text-primary" : selected ? "text-accent" : "text-muted-foreground"
+                            return (
+                              <Card
+                                key={module.id}
+                                className={`cursor-pointer transition-all duration-200 ${included
+                                  ? "border-primary bg-primary/5"
+                                  : selected
+                                    ? "border-accent bg-accent/5"
+                                    : "hover:shadow-md"
+                                  }`}
+                                onClick={() => !included && toggleModule(module.id)}
+                              >
+                                <CardContent className="p-4">
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex items-start gap-3 flex-1">
+                                      <div
+                                        className={`w-10 h-10 rounded-lg flex items-center justify-center ${included ? "bg-primary/20" : selected ? "bg-accent/20" : "bg-muted"
                                           }`}
-                                      />
-                                    </div>
-                                    <div className="flex-1">
-                                      <div className="flex items-center gap-2 mb-1">
-                                        <h3 className="font-semibold text-foreground">{module.name}</h3>
-                                        {included && (
-                                          <Badge variant="default" className="text-xs">
-                                            Incluido
-                                          </Badge>
-                                        )}
-                                      </div>
-                                      <p className="text-sm text-muted-foreground mb-2">{module.description}</p>
-                                      <div className="flex items-center gap-4 text-sm">
-                                        <span className="text-muted-foreground">${module.monthlyPrice}/mes</span>
-                                        <span className="text-muted-foreground">Setup: ${module.setupPrice}</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="ml-4">
-                                    {included ? (
-                                      <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
-                                        <Check className="w-4 h-4 text-primary-foreground" />
-                                      </div>
-                                    ) : (
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="w-6 h-6 p-0"
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          toggleModule(module.id)
-                                        }}
                                       >
-                                        {selected ? (
-                                          <Minus className="w-4 h-4 text-destructive" />
-                                        ) : (
-                                          <Plus className="w-4 h-4 text-accent" />
-                                        )}
-                                      </Button>
-                                    )}
+                                        <Icon
+                                          className={`w-5 h-5 ${included ? "text-primary" : selected ? "text-accent" : "text-muted-foreground"
+                                            }`}
+                                        />
+                                      </div>
+                                      <div className="flex-1">
+                                        <div className="flex items-center gap-2 mb-1">
+                                          <h3 className="font-semibold text-foreground">{module.name}</h3>
+                                          {included && (
+                                            <Badge variant="default" className="text-xs">
+                                              Incluido
+                                            </Badge>
+                                          )}
+                                        </div>
+                                        <p className="text-sm text-muted-foreground mb-2">{module.description}</p>
+                                        <div className="flex items-center gap-4 text-sm">
+                                          <span className="text-muted-foreground">${formatPrice(module.monthlyPrice)}/mes</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="ml-4">
+                                      {included ? (
+                                        <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                                          <Check className="w-4 h-4 text-primary-foreground" />
+                                        </div>
+                                      ) : (
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="w-6 h-6 p-0"
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            toggleModule(module.id)
+                                          }}
+                                        >
+                                          {selected ? (
+                                            <Minus className="w-4 h-4 text-destructive" />
+                                          ) : (
+                                            <Plus className="w-4 h-4 text-accent" />
+                                          )}
+                                        </Button>
+                                      )}
+                                    </div>
                                   </div>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          )
-                        })}
+                                </CardContent>
+                              </Card>
+                            )
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  )
-                })}
+                    )
+                  })
+                )}
               </div>
             </div>
           )}
@@ -819,20 +749,16 @@ export default function ConfiguratorPage() {
                 <h1 className="text-4xl font-bold text-foreground mb-4">
                   {paymentStep === "form"
                     ? "Finalizar Configuración"
-                    : paymentStep === "register"
-                      ? "Crear tu Cuenta"
-                      : paymentStep === "payment"
-                        ? "Información de Pago"
-                        : "Procesando Pago"}
+                    : paymentStep === "payment"
+                      ? "Información de Pago"
+                      : "Procesando Pago"}
                 </h1>
                 <p className="text-xl text-muted-foreground">
                   {paymentStep === "form"
                     ? "Revisa tu configuración y completa tus datos."
-                    : paymentStep === "register"
-                      ? "Crea tu cuenta para acceder al portal de cliente."
-                      : paymentStep === "payment"
-                        ? "Ingresa los datos de tu tarjeta para completar la compra."
-                        : "Procesando tu pago de forma segura..."}
+                    : paymentStep === "payment"
+                      ? "Ingresa los datos de tu tarjeta para completar la compra."
+                      : "Procesando tu pago de forma segura..."}
                 </p>
               </div>
 
@@ -847,7 +773,7 @@ export default function ConfiguratorPage() {
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
                         <span>Plantilla base ({selectedTemplate.name})</span>
-                        <span>${selectedTemplate.basePrice}/mes</span>
+                        <span>${formatPrice(selectedTemplate.monthlyPrice)}/mes</span>
                       </div>
 
                       {selectedModules
@@ -857,28 +783,16 @@ export default function ConfiguratorPage() {
                           return module ? (
                             <div key={moduleId} className="flex justify-between items-center">
                               <span>{module.name}</span>
-                              <span>${module.monthlyPrice}/mes</span>
+                              <span>${formatPrice(module.monthlyPrice)}/mes</span>
                             </div>
                           ) : null
                         })}
 
                       <Separator />
 
-                      <div className="flex justify-between items-center font-semibold">
-                        <span>Total mensual:</span>
-                        <span>${totalMonthly}/mes</span>
-                      </div>
-
-                      <div className="flex justify-between items-center">
-                        <span>Setup inicial (una vez):</span>
-                        <span>${totalSetup}</span>
-                      </div>
-
-                      <Separator />
-
                       <div className="flex justify-between items-center text-lg font-bold">
-                        <span>Total primer mes:</span>
-                        <span className="text-primary">${totalMonthly + totalSetup}</span>
+                        <span>Total mensual:</span>
+                        <span className="text-primary">${formatPrice(totalMonthly)}/mes</span>
                       </div>
 
                       <div className="bg-muted/30 p-4 rounded-lg mt-6">
@@ -900,20 +814,16 @@ export default function ConfiguratorPage() {
                     <CardTitle>
                       {paymentStep === "form"
                         ? "Información Personal"
-                        : paymentStep === "register"
-                          ? "Registro de Cuenta"
-                          : paymentStep === "payment"
-                            ? "Información de Pago"
-                            : "Procesando..."}
+                        : paymentStep === "payment"
+                          ? "Información de Pago"
+                          : "Procesando..."}
                     </CardTitle>
                     <CardDescription>
                       {paymentStep === "form"
                         ? "Completa tus datos para continuar"
-                        : paymentStep === "register"
-                          ? "Crea tu cuenta de acceso al sistema"
-                          : paymentStep === "payment"
-                            ? "Procesamiento seguro con Stripe"
-                            : "No cierres esta ventana"}
+                        : paymentStep === "payment"
+                          ? "Procesamiento seguro con Stripe"
+                          : "No cierres esta ventana"}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -994,12 +904,22 @@ export default function ConfiguratorPage() {
                             </div>
 
                             <div>
-                              <label className="text-sm font-medium text-foreground mb-2 block">Empresa</label>
+                              <label className="text-sm font-medium text-foreground mb-2 block">Teléfono</label>
+                              <Input
+                                type="tel"
+                                value={formData.phone}
+                                onChange={(e) => handleInputChange("phone", e.target.value)}
+                                placeholder="+57 300 123 4567"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="text-sm font-medium text-foreground mb-2 block">Código Postal</label>
                               <Input
                                 type="text"
-                                value={formData.company}
-                                onChange={(e) => handleInputChange("company", e.target.value)}
-                                placeholder="Nombre de tu empresa"
+                                value={formData.postalCode}
+                                onChange={(e) => handleInputChange("postalCode", e.target.value)}
+                                placeholder="110111"
                               />
                             </div>
 
@@ -1052,98 +972,11 @@ export default function ConfiguratorPage() {
                                 </>
                               ) : (
                                 <>
-                                  Continuar al Registro
+                                  Continuar al Pago
                                   <ArrowRight className="w-4 h-4 ml-2" />
                                 </>
                               )}
                             </Button>
-                          </>
-                        )}
-
-                        {paymentStep === "register" && (
-                          <>
-                            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                              <div className="flex items-center gap-2 mb-2">
-                                <User className="w-4 h-4 text-green-600" />
-                                <span className="text-sm font-medium text-green-800">Datos de Prueba Precargados</span>
-                              </div>
-                              <p className="text-xs text-green-700">
-                                Los campos están prellenados con credenciales de prueba válidas
-                              </p>
-                            </div>
-
-                            <div>
-                              <label className="text-sm font-medium text-foreground mb-2 block">
-                                Email de la cuenta
-                              </label>
-                              <Input
-                                type="email"
-                                value={registrationData.email}
-                                onChange={(e) => handleRegistrationChange("email", e.target.value)}
-                                placeholder="tu@empresa.com"
-                              />
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Este será tu email de acceso al portal
-                              </p>
-                            </div>
-
-                            <div>
-                              <label className="text-sm font-medium text-foreground mb-2 block">Contraseña</label>
-                              <Input
-                                type="password"
-                                value={registrationData.password}
-                                onChange={(e) => handleRegistrationChange("password", e.target.value)}
-                                placeholder="Mínimo 8 caracteres"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="text-sm font-medium text-foreground mb-2 block">
-                                Confirmar contraseña
-                              </label>
-                              <Input
-                                type="password"
-                                value={registrationData.confirmPassword}
-                                onChange={(e) => handleRegistrationChange("confirmPassword", e.target.value)}
-                                placeholder="Repite tu contraseña"
-                              />
-                            </div>
-
-                            <div className="bg-muted/30 p-4 rounded-lg">
-                              <div className="flex items-center gap-2 mb-2">
-                                <Lock className="w-4 h-4 text-blue-600" />
-                                <span className="text-sm font-medium">Cuenta Segura</span>
-                              </div>
-                              <p className="text-xs text-muted-foreground">
-                                Tu cuenta será creada con encriptación de extremo a extremo. Podrás acceder al portal
-                                inmediatamente después del pago.
-                              </p>
-                            </div>
-
-                            <div className="flex gap-3">
-                              <Button variant="outline" onClick={() => setPaymentStep("form")} className="flex-1">
-                                <ArrowLeft className="w-4 h-4 mr-2" />
-                                Volver
-                              </Button>
-                              <Button
-                                className="flex-1"
-                                size="lg"
-                                onClick={proceedToPaymentFromRegistration}
-                                disabled={isProcessing}
-                              >
-                                {isProcessing ? (
-                                  <>
-                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    Creando cuenta...
-                                  </>
-                                ) : (
-                                  <>
-                                    <User className="w-4 h-4 mr-2" />
-                                    Crear Cuenta y Continuar
-                                  </>
-                                )}
-                              </Button>
-                            </div>
                           </>
                         )}
 
@@ -1152,96 +985,266 @@ export default function ConfiguratorPage() {
                             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                               <div className="flex items-center gap-2 mb-2">
                                 <CreditCard className="w-4 h-4 text-blue-600" />
-                                <span className="text-sm font-medium text-blue-800">Datos de Prueba Precargados</span>
+                                <span className="text-sm font-medium text-blue-800">Elige tu método de pago</span>
                               </div>
                               <p className="text-xs text-blue-700">
-                                Los campos están prellenados con datos de prueba válidos para Stripe
+                                Pago 100% seguro con Stripe o PayPal
                               </p>
                             </div>
 
-                            <div>
-                              <label className="text-sm font-medium text-foreground mb-2 block">
-                                Número de Tarjeta
-                              </label>
-                              <Input
-                                type="text"
-                                value={paymentData.cardNumber}
-                                onChange={(e) => handlePaymentChange("cardNumber", e.target.value)}
-                                placeholder="1234 5678 9012 3456"
-                                className="font-mono"
-                              />
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Tarjeta de prueba Visa (4242 4242 4242 4242)
-                              </p>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                <label className="text-sm font-medium text-foreground mb-2 block">
-                                  Fecha de Vencimiento
-                                </label>
-                                <Input
-                                  type="text"
-                                  value={paymentData.expiryDate}
-                                  onChange={(e) => handlePaymentChange("expiryDate", e.target.value)}
-                                  placeholder="MM/YY"
-                                  className="font-mono"
-                                />
+                            {/* Payment Method Selection */}
+                            <div className="grid grid-cols-2 gap-4 mb-6">
+                              <div
+                                className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                                  paymentMethod === "stripe"
+                                    ? "border-primary bg-primary/5"
+                                    : "border-muted hover:border-primary/50"
+                                }`}
+                                onClick={() => setPaymentMethod("stripe")}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <CreditCard className="w-5 h-5 text-primary" />
+                                  <div>
+                                    <p className="font-medium text-sm">Tarjeta de Crédito</p>
+                                    <p className="text-xs text-muted-foreground">Visa, MasterCard, American Express</p>
+                                  </div>
+                                </div>
                               </div>
-                              <div>
-                                <label className="text-sm font-medium text-foreground mb-2 block">CVV</label>
-                                <Input
-                                  type="text"
-                                  value={paymentData.cvv}
-                                  onChange={(e) => handlePaymentChange("cvv", e.target.value)}
-                                  placeholder="123"
-                                  className="font-mono"
-                                />
+                              <div
+                                className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                                  paymentMethod === "paypal"
+                                    ? "border-primary bg-primary/5"
+                                    : "border-muted hover:border-primary/50"
+                                }`}
+                                onClick={() => setPaymentMethod("paypal")}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="w-5 h-5 bg-blue-600 rounded text-white text-xs font-bold flex items-center justify-center">
+                                    P
+                                  </div>
+                                  <div>
+                                    <p className="font-medium text-sm">PayPal</p>
+                                    <p className="text-xs text-muted-foreground">Cuenta PayPal o tarjeta</p>
+                                  </div>
+                                </div>
                               </div>
                             </div>
 
-                            <div>
-                              <label className="text-sm font-medium text-foreground mb-2 block">
-                                Nombre en la Tarjeta
-                              </label>
-                              <Input
-                                type="text"
-                                value={paymentData.cardName}
-                                onChange={(e) => handlePaymentChange("cardName", e.target.value)}
-                                placeholder="Nombre como aparece en la tarjeta"
-                              />
-                            </div>
+                            {paymentMethod === "stripe" ? (
+                              <>
+                                <div>
+                                  <label className="text-sm font-medium text-foreground mb-2 block">
+                                    Número de Tarjeta
+                                  </label>
+                                  <Input
+                                    type="text"
+                                    value={paymentData.cardNumber}
+                                    onChange={(e) => handlePaymentChange("cardNumber", e.target.value)}
+                                    placeholder="1234 5678 9012 3456"
+                                    className="font-mono"
+                                  />
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    Tarjeta de prueba Visa (4242 4242 4242 4242)
+                                  </p>
+                                </div>
 
-                            <div className="bg-muted/30 p-4 rounded-lg">
-                              <div className="flex items-center gap-2 mb-2">
-                                <Lock className="w-4 h-4 text-green-600" />
-                                <span className="text-sm font-medium">Información Segura</span>
-                              </div>
-                              <p className="text-xs text-muted-foreground">
-                                Todos los datos son procesados de forma segura por Stripe. No almacenamos información de
-                                tarjetas de crédito.
-                              </p>
-                            </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <label className="text-sm font-medium text-foreground mb-2 block">
+                                      Fecha de Vencimiento
+                                    </label>
+                                    <Input
+                                      type="text"
+                                      value={paymentData.expiryDate}
+                                      onChange={(e) => handlePaymentChange("expiryDate", e.target.value)}
+                                      placeholder="MM/YY"
+                                      className="font-mono"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-medium text-foreground mb-2 block">CVV</label>
+                                    <Input
+                                      type="text"
+                                      value={paymentData.cvv}
+                                      onChange={(e) => handlePaymentChange("cvv", e.target.value)}
+                                      placeholder="123"
+                                      className="font-mono"
+                                    />
+                                  </div>
+                                </div>
 
-                            <div className="flex gap-3">
-                              <Button variant="outline" onClick={() => setPaymentStep("register")} className="flex-1">
-                                <ArrowLeft className="w-4 h-4 mr-2" />
-                                Volver
-                              </Button>
-                              <Button className="flex-1" size="lg" onClick={handlePayment} disabled={isProcessing}>
-                                {isProcessing ? (
-                                  <>
-                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    Procesando...
-                                  </>
-                                ) : (
-                                  <>
-                                    <Lock className="w-4 h-4 mr-2" />
-                                    Pagar ${totalMonthly + totalSetup}
-                                  </>
-                                )}
-                              </Button>
-                            </div>
+                                <div>
+                                  <label className="text-sm font-medium text-foreground mb-2 block">
+                                    Nombre en la Tarjeta
+                                  </label>
+                                  <Input
+                                    type="text"
+                                    value={paymentData.cardName}
+                                    onChange={(e) => handlePaymentChange("cardName", e.target.value)}
+                                    placeholder="Nombre como aparece en la tarjeta"
+                                  />
+                                </div>
+
+                                <div className="bg-muted/30 p-4 rounded-lg">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <Lock className="w-4 h-4 text-green-600" />
+                                    <span className="text-sm font-medium">Información Segura</span>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground">
+                                    Todos los datos son procesados de forma segura por Stripe. No almacenamos información de
+                                    tarjetas de crédito.
+                                  </p>
+                                </div>
+
+                                <div className="flex gap-3">
+                                  <Button variant="outline" onClick={() => setPaymentStep("form")} className="flex-1">
+                                    <ArrowLeft className="w-4 h-4 mr-2" />
+                                    Volver
+                                  </Button>
+                                  <Button className="flex-1" size="lg" onClick={handlePayment} disabled={isProcessing}>
+                                    {isProcessing ? (
+                                      <>
+                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                        Procesando...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Lock className="w-4 h-4 mr-2" />
+                                        Pagar ${formatPrice(totalMonthly)}
+                                      </>
+                                    )}
+                                  </Button>
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div className="bg-muted/30 p-4 rounded-lg mb-4">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <Lock className="w-4 h-4 text-blue-600" />
+                                    <span className="text-sm font-medium">Pago Seguro con PayPal</span>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground">
+                                    Serás redirigido a PayPal para completar tu pago de forma segura. Puedes usar tu cuenta PayPal o pagar como invitado con tarjeta.
+                                  </p>
+                                </div>
+
+                                <PayPalScriptProvider 
+                                  options={{ 
+                                    clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!,
+                                    currency: "USD",
+                                    intent: "capture",
+                                    locale: "es_PE"
+                                  }}
+                                >
+                                  <PayPalButtons
+                                    style={{
+                                      layout: "vertical",
+                                      color: "blue",
+                                      shape: "rect",
+                                      label: "pay"
+                                    }}
+                                    createOrder={(data, actions) => {
+                                      return actions.order.create({
+                                        intent: "CAPTURE",
+                                        purchase_units: [
+                                          {
+                                            amount: {
+                                              currency_code: "USD",
+                                              value: totalMonthly.toString(),
+                                            },
+                                            description: `${selectedTemplate?.name} - Sistema personalizado`,
+                                            custom_id: `order_${Date.now()}`,
+                                          },
+                                        ],
+                                        application_context: {
+                                          brand_name: "SystemGen",
+                                          user_action: "PAY_NOW",
+                                          shipping_preference: "NO_SHIPPING", // No pedir dirección de envío
+                                          payment_method: {
+                                            payee_preferred: "IMMEDIATE_PAYMENT_REQUIRED"
+                                          }
+                                        },
+                                      });
+                                    }}
+                                    onApprove={async (data, actions) => {
+                                      if (!actions.order) return;
+                                      
+                                      setIsProcessing(true);
+                                      try {
+                                        const details = await actions.order.capture();
+                                        
+                                        // Guardar orden en base de datos
+                                        try {
+                                          const orderResponse = await fetch('/api/orders', {
+                                            method: 'POST',
+                                            headers: {
+                                              'Content-Type': 'application/json',
+                                            },
+                                            body: JSON.stringify({
+                                              customerInfo: {
+                                                ...formData,
+                                                registeredEmail: formData.email,
+                                                template: selectedTemplate?.name,
+                                              },
+                                              selectedModules,
+                                              totalAmount: totalMonthly,
+                                              paymentMethod: 'paypal',
+                                              paymentReference: details.id || ''
+                                            })
+                                          });
+
+                                          const orderData = await orderResponse.json();
+                                        } catch (error) {
+                                          console.error('[PayPal] Error saving order:', error);
+                                        }
+                                        
+                                        // Store payment success in localStorage for portal access
+                                        localStorage.setItem("paymentCompleted", "true");
+                                        localStorage.setItem("paymentMethod", "paypal");
+                                        localStorage.setItem("paypalOrderId", details.id || "");
+                                        localStorage.setItem(
+                                          "customerData",
+                                          JSON.stringify({
+                                            ...formData,
+                                            registeredEmail: formData.email,
+                                            template: selectedTemplate?.name,
+                                            modules: selectedModules,
+                                            totalPaid: totalMonthly,
+                                            paymentDate: new Date().toISOString(),
+                                            paymentMethod: "paypal",
+                                            paypalOrderId: details.id || "",
+                                          }),
+                                        );
+
+                                        // Redirect to portal
+                                        setTimeout(() => {
+                                          window.location.href = "/portal?welcome=true&payment=success&method=paypal";
+                                        }, 1000);
+                                        
+                                      } catch (error) {
+                                        console.error("[PayPal] Payment error:", error);
+                                        setFormErrors(["Error al procesar el pago con PayPal. Por favor intenta nuevamente."]);
+                                        setIsProcessing(false);
+                                      }
+                                    }}
+                                    onError={(err) => {
+                                      console.error("[PayPal] Error:", err);
+                                      setFormErrors(["Error en el sistema de PayPal. Por favor intenta nuevamente."]);
+                                    }}
+                                    onCancel={(data) => {
+                                      setFormErrors(["Pago cancelado. Puedes intentar nuevamente cuando gustes."]);
+                                    }}
+                                  />
+                                </PayPalScriptProvider>
+
+                                <div className="flex gap-3 mt-4">
+                                  <Button variant="outline" onClick={() => setPaymentStep("form")} className="flex-1">
+                                    <ArrowLeft className="w-4 h-4 mr-2" />
+                                    Volver
+                                  </Button>
+                                </div>
+                              </>
+                            )}
 
                             <p className="text-xs text-center text-muted-foreground">
                               Tu sistema estará listo en menos de 1 minuto después del pago confirmado

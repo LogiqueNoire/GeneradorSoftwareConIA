@@ -1138,7 +1138,6 @@ export function GameConfigurator({ onBack, userLevel, experience, onLevelUp }: G
                               if (!actions || !actions.order) return Promise.resolve();
                               return actions.order.capture().then(details => {
                                 handlePayment()
-                                console.log(details)
                               })
                             }}
                           />
