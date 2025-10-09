@@ -2,8 +2,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSearchParams } from "next/navigation"
-import { GameConfigurator } from "@/components/game-configurator"
+import { useSearchParams, useRouter } from "next/navigation"
 import { ProactiveChatbot } from "@/components/proactive-chatbot"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,8 +17,8 @@ import fondoNuevo from "@/public/circulosverdes.gif"
 
 export default function HomePageClient() {
     const searchParams = useSearchParams()
+    const router = useRouter()
 
-    const [gameStarted, setGameStarted] = useState(false)
     const [userLevel, setUserLevel] = useState(1)
     const [experience, setExperience] = useState(0)
     const [showChatbot, setShowChatbot] = useState(false)
@@ -27,9 +26,9 @@ export default function HomePageClient() {
     useEffect(() => {
         const shouldStart = searchParams.get("start") === "true"
         if (shouldStart) {
-            setGameStarted(true)
+            router.push('/configurator')
         }
-    }, [searchParams])
+    }, [searchParams, router])
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -38,41 +37,6 @@ export default function HomePageClient() {
         return () => clearTimeout(timer)
     }, [])
 
-    if (gameStarted) {
-        return (
-            <div>
-                <GameConfigurator
-                    onBack={() => setGameStarted(false)}
-                    userLevel={userLevel}
-                    experience={experience}
-                    onLevelUp={(newLevel, newExp) => {
-                        setUserLevel(newLevel)
-                        setExperience(newExp)
-                    }}
-                />
-                <ProactiveChatbot isVisible={showChatbot} onClose={() => setShowChatbot(false)} userLevel={userLevel} />
-            </div>
-        )
-    }
-
-
-
-    if (gameStarted) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5">
-                <GameConfigurator
-                    onBack={() => setGameStarted(false)}
-                    userLevel={userLevel}
-                    experience={experience}
-                    onLevelUp={(newLevel, newExp) => {
-                        setUserLevel(newLevel)
-                        setExperience(newExp)
-                    }}
-                />
-                <ProactiveChatbot isVisible={showChatbot} onClose={() => setShowChatbot(false)} userLevel={userLevel} />
-            </div>
-        )
-    }
     return (
         <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5">
             {/* Gamified Header */}
@@ -92,7 +56,7 @@ export default function HomePageClient() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <Button className="bg-primary hover:bg-primary/90 text-white" onClick={() => setGameStarted(true)}>
+                        <Button className="bg-primary hover:bg-primary/90 text-white" onClick={() => router.push('/configurator')}>
                             <Rocket className="w-4 h-4 mr-2" />
                             Desplegar Sistema
                         </Button>
@@ -184,7 +148,7 @@ export default function HomePageClient() {
                         <Button
                             size="lg"
                             className="text-lg px-8 bg-primary hover:bg-primary/90 shadow-xl transform hover:scale-105 transition-all duration-200 text-white"
-                            onClick={() => setGameStarted(true)}
+                            onClick={() => router.push('/configurator')}
                         >
                             <Play className="w-5 h-5 mr-2" />
                             ¡Comenzar Aventura!
@@ -194,6 +158,7 @@ export default function HomePageClient() {
                             variant="outline"
                             size="lg"
                             className="text-lg px-8 bg-card/50 backdrop-blur-sm border-primary/30 hover:bg-primary/5"
+                            onClick={() => router.push('/configurator')}
                         >
                             <Target className="w-5 h-5 mr-2" />
                             Ver Demo Interactiva
@@ -351,7 +316,7 @@ export default function HomePageClient() {
 
                                 <div className="text-center">
                                     <Button
-                                        onClick={() => setGameStarted(true)}
+                                        onClick={() => router.push('/configurator')}
                                         className="bg-slate-800 hover:bg-slate-700 text-white border-0 shadow-lg"
                                     >
                                         <Play className="w-4 h-4 mr-2" />

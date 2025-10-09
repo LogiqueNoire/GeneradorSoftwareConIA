@@ -54,9 +54,7 @@ export default function BlogPage() {
       .catch(err => console.error("Error cargando artículos", err))
   }, [])
 
-  useEffect(()=>{
-    console.log(articles)
-  }, [articles])
+  // Articles loaded
 
   return (
     <div className="min-h-screen bg-background">

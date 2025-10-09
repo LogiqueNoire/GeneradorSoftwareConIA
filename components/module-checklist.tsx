@@ -62,6 +62,7 @@ interface ModuleChecklist {
 
 interface ModuleChecklistProps {
   modules: string[]
+  moduleConfigurations?: any[]
   onProgress?: (moduleId: string, progress: number) => void
   onChecklistUpdate?: (checklists: ModuleChecklist[]) => void
 }
@@ -81,10 +82,9 @@ const getModuleChecklist = (moduleId: string): ModuleChecklist | null => {
           description: "Clave de API para sincronización con Google Calendar",
           type: "api_key",
           required: true,
-          completed: true,
+          completed: false,
           placeholder: "AIzaSyD...",
-          helpText: "Obtén tu API key desde Google Cloud Console",
-          value: "AIzaSyDXX1234567890abcdefghijklmnopqrstuvwxyz"
+          helpText: "Obtén tu API key desde Google Cloud Console"
         },
         {
           id: "calendar_id",
@@ -92,36 +92,26 @@ const getModuleChecklist = (moduleId: string): ModuleChecklist | null => {
           description: "ID del calendario principal donde se crearán las citas",
           type: "input",
           required: true,
-          completed: true,
-          placeholder: "primary o calendar-id@gmail.com",
-          value: "primary"
+          completed: false,
+          placeholder: "primary o calendar-id@gmail.com"
         },
         {
-          id: "time_zone",
-          title: "Zona Horaria",
-          description: "Zona horaria para las citas",
+          id: "booking_window",
+          title: "Ventana de Reserva",
+          description: "Cantidad de días hacia adelante para reservas",
           type: "input",
           required: true,
-          completed: true,
-          placeholder: "America/Lima",
-          value: "America/Lima"
+          completed: false,
+          placeholder: "30"
         },
         {
-          id: "notification_settings",
-          title: "Configurar Notificaciones",
-          description: "Habilitar recordatorios automáticos",
-          type: "checkbox",
-          required: false,
-          completed: true
-        },
-        {
-          id: "business_hours",
-          title: "Horarios de Atención",
-          description: "Configurar horarios disponibles para citas",
+          id: "appointment_types",
+          title: "Tipos de Cita Configurados",
+          description: "Tipos de citas disponibles",
           type: "config",
           required: true,
-          completed: true,
-          helpText: "Lunes a Viernes: 9:00 AM - 6:00 PM"
+          completed: false,
+          helpText: "Ej: Consulta General, Limpieza, Emergencia"
         }
       ]
     },
@@ -132,35 +122,14 @@ const getModuleChecklist = (moduleId: string): ModuleChecklist | null => {
       category: "core",
       items: [
         {
-          id: "whatsapp_token",
+          id: "whatsapp_business_token",
           title: "Token de WhatsApp Business",
           description: "Token de acceso para WhatsApp Business API",
           type: "api_key",
           required: true,
-          completed: true,
+          completed: false,
           placeholder: "EAAl...",
-          helpText: "Obtén el token desde Meta for Developers",
-          value: "EAAl1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijk"
-        },
-        {
-          id: "phone_number_id",
-          title: "ID del Número de Teléfono",
-          description: "ID del número de WhatsApp Business verificado",
-          type: "input",
-          required: true,
-          completed: true,
-          placeholder: "1234567890123456",
-          value: "1234567890123456"
-        },
-        {
-          id: "stripe_public_key",
-          title: "Clave Pública de Stripe",
-          description: "Clave pública para procesar pagos",
-          type: "api_key",
-          required: true,
-          completed: true,
-          placeholder: "pk_live_...",
-          value: "pk_live_1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef"
+          helpText: "Obtén el token desde Meta for Developers"
         },
         {
           id: "stripe_secret_key",
@@ -168,19 +137,26 @@ const getModuleChecklist = (moduleId: string): ModuleChecklist | null => {
           description: "Clave secreta de Stripe (mantener segura)",
           type: "api_key",
           required: true,
-          completed: true,
-          placeholder: "sk_live_...",
-          value: "sk_live_1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef"
+          completed: false,
+          placeholder: "sk_live_..."
         },
         {
-          id: "webhook_url",
+          id: "payment_webhook_url",
           title: "URL del Webhook",
           description: "URL para recibir confirmaciones de pago",
           type: "url",
           required: true,
-          completed: true,
-          placeholder: "https://tu-dominio.com/api/webhook/stripe",
-          value: "https://misistema.com/api/webhook/stripe"
+          completed: false,
+          placeholder: "https://tu-dominio.com/api/webhook/stripe"
+        },
+        {
+          id: "currency_config",
+          title: "Moneda por Defecto",
+          description: "Moneda utilizada en las transacciones",
+          type: "input",
+          required: false,
+          completed: false,
+          placeholder: "USD"
         }
       ]
     },
@@ -196,48 +172,36 @@ const getModuleChecklist = (moduleId: string): ModuleChecklist | null => {
           description: "Clave de API para GPT-4/GPT-3.5",
           type: "api_key",
           required: true,
-          completed: true,
+          completed: false,
           placeholder: "sk-proj-...",
-          helpText: "Obtén tu API key desde platform.openai.com",
-          value: "sk-proj-1234567890abcdefghijklmnopqrstuvwxyzABCDEF"
-        },
-        {
-          id: "assistant_id",
-          title: "ID del Asistente",
-          description: "ID del asistente personalizado (opcional)",
-          type: "input",
-          required: false,
-          completed: true,
-          placeholder: "asst_...",
-          value: "asst_ABC123DEF456GHI789JKL012MNO345"
-        },
-        {
-          id: "training_data",
-          title: "Datos de Entrenamiento",
-          description: "URL o archivo con información específica de tu negocio",
-          type: "url",
-          required: false,
-          completed: true,
-          placeholder: "https://tu-sitio.com/knowledge-base.txt",
-          value: "https://misistema.com/knowledge-base.txt"
+          helpText: "Obtén tu API key desde platform.openai.com"
         },
         {
           id: "response_language",
           title: "Idioma de Respuestas",
-          description: "Idioma principal para las respuestas del bot",
+          description: "Idioma principal del chatbot",
           type: "input",
-          required: true,
-          completed: true,
-          placeholder: "español",
-          value: "español"
+          required: false,
+          completed: false,
+          placeholder: "Español"
         },
         {
-          id: "enable_voice",
-          title: "Habilitar Respuestas de Voz",
-          description: "Permitir que el bot responda con audio",
-          type: "checkbox",
+          id: "welcome_message",
+          title: "Mensaje de Bienvenida",
+          description: "Primer mensaje que muestra el chatbot",
+          type: "input",
+          required: true,
+          completed: false,
+          placeholder: "¡Hola! ¿En qué puedo ayudarte?"
+        },
+        {
+          id: "ai_model",
+          title: "Modelo de IA",
+          description: "Modelo de OpenAI a utilizar",
+          type: "input",
           required: false,
-          completed: true
+          completed: false,
+          placeholder: "gpt-3.5-turbo"
         }
       ]
     },
@@ -253,9 +217,8 @@ const getModuleChecklist = (moduleId: string): ModuleChecklist | null => {
           description: "ID de propiedad de Google Analytics 4",
           type: "input",
           required: true,
-          completed: true,
-          placeholder: "G-XXXXXXXXXX",
-          value: "G-ABC1234567"
+          completed: false,
+          placeholder: "G-XXXXXXXXXX"
         },
         {
           id: "sentiment_api_key",
@@ -263,28 +226,17 @@ const getModuleChecklist = (moduleId: string): ModuleChecklist | null => {
           description: "Clave para Azure Cognitive Services o Google Cloud NLP",
           type: "api_key",
           required: true,
-          completed: true,
-          placeholder: "a1b2c3d4e5f6...",
-          value: "a1b2c3d4e5f6789012345678901234567890abcdef"
+          completed: false,
+          placeholder: "a1b2c3d4e5f6..."
         },
         {
-          id: "data_sources",
-          title: "Fuentes de Datos",
-          description: "Configurar fuentes de feedback (formularios, reseñas, etc.)",
-          type: "config",
-          required: true,
-          completed: true,
-          helpText: "Configurado: WhatsApp Business, Formularios web, Google Reviews, Email feedback"
-        },
-        {
-          id: "reporting_frequency",
+          id: "report_frequency",
           title: "Frecuencia de Reportes",
           description: "Con qué frecuencia generar reportes automáticos",
           type: "input",
           required: true,
-          completed: true,
-          placeholder: "Diario, Semanal, Mensual",
-          value: "Semanal"
+          completed: false,
+          placeholder: "Diario, Semanal, Mensual"
         }
       ]
     },
@@ -295,44 +247,31 @@ const getModuleChecklist = (moduleId: string): ModuleChecklist | null => {
       category: "communication",
       items: [
         {
-          id: "whatsapp_business_token",
-          title: "Token de WhatsApp Business",
-          description: "Token de acceso a la API de WhatsApp Business",
-          type: "api_key",
-          required: true,
-          completed: true,
-          placeholder: "EAAl...",
-          value: "EAAl9876543210ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvu"
-        },
-        {
-          id: "verify_token",
-          title: "Token de Verificación",
-          description: "Token para verificar webhooks",
+          id: "whatsapp_phone_number",
+          title: "Número de WhatsApp Business",
+          description: "Número de teléfono verificado en WhatsApp Business",
           type: "input",
           required: true,
-          completed: true,
-          placeholder: "mi_token_secreto_123",
-          value: "webhook_verify_token_2024"
+          completed: false,
+          placeholder: "+51987654321"
         },
         {
-          id: "phone_number",
-          title: "Número de Teléfono",
-          description: "Número de WhatsApp Business verificado",
-          type: "input",
-          required: true,
-          completed: true,
-          placeholder: "+51987654321",
-          value: "+51987654321"
-        },
-        {
-          id: "webhook_url_whatsapp",
-          title: "URL del Webhook",
+          id: "whatsapp_webhook_url",
+          title: "URL del Webhook de WhatsApp",
           description: "URL para recibir mensajes de WhatsApp",
           type: "url",
           required: true,
-          completed: true,
-          placeholder: "https://tu-dominio.com/api/webhook/whatsapp",
-          value: "https://misistema.com/api/webhook/whatsapp"
+          completed: false,
+          placeholder: "https://tu-dominio.com/api/webhook/whatsapp"
+        },
+        {
+          id: "auto_responses",
+          title: "Respuestas Automáticas Configuradas",
+          description: "Tipos de respuestas automáticas activas",
+          type: "config",
+          required: false,
+          completed: false,
+          helpText: "Configura: Saludos, Horarios, Ubicación"
         }
       ]
     },
@@ -343,54 +282,31 @@ const getModuleChecklist = (moduleId: string): ModuleChecklist | null => {
       category: "marketing",
       items: [
         {
-          id: "smtp_host",
-          title: "Servidor SMTP",
-          description: "Servidor SMTP para envío de emails",
-          type: "input",
-          required: true,
-          completed: true,
-          placeholder: "smtp.gmail.com",
-          value: "smtp.gmail.com"
-        },
-        {
-          id: "smtp_port",
-          title: "Puerto SMTP",
-          description: "Puerto del servidor SMTP",
-          type: "input",
-          required: true,
-          completed: true,
-          placeholder: "587",
-          value: "587"
-        },
-        {
-          id: "email_username",
-          title: "Usuario de Email",
-          description: "Usuario para autenticación SMTP",
-          type: "input",
-          required: true,
-          completed: true,
-          placeholder: "tu-email@gmail.com",
-          value: "sistema@tuempresa.com"
-        },
-        {
-          id: "email_password",
-          title: "Contraseña de Aplicación",
-          description: "Contraseña específica de aplicación",
+          id: "mailchimp_api_key",
+          title: "Mailchimp API Key",
+          description: "Clave de API de Mailchimp",
           type: "api_key",
           required: true,
-          completed: true,
-          placeholder: "abcd efgh ijkl mnop",
-          value: "wxyz 1234 abcd 5678"
+          completed: false,
+          placeholder: "abcd1234-us1"
         },
         {
-          id: "sender_name",
-          title: "Nombre del Remitente",
-          description: "Nombre que aparecerá en los emails",
+          id: "sender_email",
+          title: "Email del Remitente",
+          description: "Dirección de email desde donde se enviarán las campañas",
           type: "input",
           required: true,
-          completed: true,
-          placeholder: "Tu Empresa",
-          value: "Sistema de Gestión"
+          completed: false,
+          placeholder: "tu-email@gmail.com"
+        },
+        {
+          id: "email_templates",
+          title: "Plantillas Configuradas",
+          description: "Plantillas de email disponibles",
+          type: "config",
+          required: false,
+          completed: false,
+          helpText: "Plantillas: Bienvenida, Recordatorio, Promociones"
         }
       ]
     },
@@ -401,41 +317,40 @@ const getModuleChecklist = (moduleId: string): ModuleChecklist | null => {
       category: "finance",
       items: [
         {
-          id: "tax_api_key",
-          title: "API de Cálculo de Impuestos",
-          description: "Clave para servicio de cálculo automático de impuestos",
+          id: "sunat_api_key",
+          title: "API Key de SUNAT",
+          description: "Clave para integración con SUNAT (Perú)",
           type: "api_key",
-          required: false,
-          completed: true,
-          placeholder: "tax_live_...",
-          value: "tax_live_ABC123DEF456GHI789JKL012MNO345PQR678"
-        },
-        {
-          id: "invoice_template",
-          title: "Plantilla de Factura",
-          description: "URL de la plantilla personalizada de facturas",
-          type: "url",
-          required: false,
-          completed: true,
-          placeholder: "https://tu-dominio.com/templates/invoice.html",
-          value: "https://misistema.com/templates/factura-empresarial.html"
-        },
-        {
-          id: "company_info",
-          title: "Información de la Empresa",
-          description: "Datos fiscales de tu empresa",
-          type: "config",
           required: true,
-          completed: true,
-          helpText: "RUC: 12345678901, Razón Social: Tu Empresa S.A.C., Dirección: Av. Principal 123"
+          completed: false,
+          placeholder: "sunat_key_123..."
         },
         {
-          id: "auto_send",
-          title: "Envío Automático",
-          description: "Enviar facturas automáticamente por email",
-          type: "checkbox",
+          id: "company_ruc",
+          title: "RUC de la Empresa",
+          description: "Número de RUC de la empresa",
+          type: "input",
+          required: true,
+          completed: false,
+          placeholder: "12345678901"
+        },
+        {
+          id: "billing_series",
+          title: "Serie de Facturación",
+          description: "Serie utilizada para las facturas",
+          type: "input",
+          required: true,
+          completed: false,
+          placeholder: "F001"
+        },
+        {
+          id: "tax_rate",
+          title: "Tasa de IGV",
+          description: "Porcentaje de IGV aplicado",
+          type: "input",
           required: false,
-          completed: true
+          completed: false,
+          placeholder: "18"
         }
       ]
     },
@@ -446,41 +361,84 @@ const getModuleChecklist = (moduleId: string): ModuleChecklist | null => {
       category: "healthcare",
       items: [
         {
-          id: "hl7_integration",
-          title: "Integración HL7",
-          description: "URL del servidor HL7 para intercambio de datos médicos",
-          type: "url",
-          required: false,
-          completed: true,
-          placeholder: "https://hl7-server.com/api",
-          value: "https://hl7-mexico.com/api/v2/fhir"
+          id: "database_connection",
+          title: "Conexión a Base de Datos",
+          description: "String de conexión a la base de datos de pacientes",
+          type: "api_key",
+          required: true,
+          completed: false,
+          placeholder: "postgresql://user:pass@host:5432/dbname"
         },
         {
-          id: "medical_record_format",
-          title: "Formato de Historia Clínica",
-          description: "Configurar campos personalizados para historias clínicas",
+          id: "patient_fields",
+          title: "Campos de Paciente Configurados",
+          description: "Campos disponibles en el registro de pacientes",
           type: "config",
           required: true,
-          completed: true,
-          helpText: "Campos configurados: Alergias, Medicamentos actuales, Antecedentes familiares, Diagnósticos previos"
-        },
-        {
-          id: "gdpr_compliance",
-          title: "Cumplimiento GDPR",
-          description: "Habilitar funciones de protección de datos",
-          type: "checkbox",
-          required: true,
-          completed: true
+          completed: false,
+          helpText: "Campos: Nombre, DNI, Teléfono, Email, Historial"
         },
         {
           id: "backup_frequency",
-          title: "Frecuencia de Respaldo",
-          description: "Con qué frecuencia respaldar datos de pacientes",
+          title: "Frecuencia de Backup",
+          description: "Con qué frecuencia hacer respaldo de datos",
           type: "input",
+          required: false,
+          completed: false,
+          placeholder: "Diario"
+        },
+        {
+          id: "patient_portal_url",
+          title: "URL del Portal de Pacientes",
+          description: "URL donde los pacientes pueden acceder a su información",
+          type: "url",
+          required: false,
+          completed: false,
+          placeholder: "https://portal-pacientes.com"
+        }
+      ]
+    },
+    inventory: {
+      moduleId: "inventory",
+      moduleName: "Gestión de Inventario",
+      icon: ShoppingCart,
+      category: "business",
+      items: [
+        {
+          id: "inventory_database_url",
+          title: "URL de Base de Datos de Inventario",
+          description: "Conexión a la base de datos de inventario",
+          type: "api_key",
           required: true,
-          completed: true,
-          placeholder: "Diario",
-          value: "Diario"
+          completed: false,
+          placeholder: "postgresql://user:pass@host:5432/inventory"
+        },
+        {
+          id: "low_stock_threshold",
+          title: "Umbral de Stock Bajo",
+          description: "Cantidad mínima para alertas de stock",
+          type: "input",
+          required: false,
+          completed: false,
+          placeholder: "10"
+        },
+        {
+          id: "barcode_scanner_api",
+          title: "API de Escáner de Códigos",
+          description: "API para integración con escáneres de códigos de barras",
+          type: "api_key",
+          required: false,
+          completed: false,
+          placeholder: "barcode_api_key_123"
+        },
+        {
+          id: "inventory_categories",
+          title: "Categorías de Inventario Configuradas",
+          description: "Categorías para organizar productos",
+          type: "config",
+          required: true,
+          completed: false,
+          helpText: "Ej: Medicamentos, Equipos, Suministros, Consumibles"
         }
       ]
     }
@@ -489,27 +447,94 @@ const getModuleChecklist = (moduleId: string): ModuleChecklist | null => {
   return checklists[moduleId] || null
 }
 
-export function ModuleChecklist({ modules, onProgress, onChecklistUpdate }: ModuleChecklistProps) {
+export function ModuleChecklist({ modules, moduleConfigurations, onProgress, onChecklistUpdate }: ModuleChecklistProps) {
   const [checklists, setChecklists] = useState<ModuleChecklist[]>([])
   const [expandedModule, setExpandedModule] = useState<string | null>(null)
 
   useEffect(() => {
-    const moduleChecklists = modules
-      .map(moduleId => getModuleChecklist(moduleId))
-      .filter(Boolean) as ModuleChecklist[]
-    
-    setChecklists(moduleChecklists)
-    if (moduleChecklists.length > 0 && !expandedModule) {
-      setExpandedModule(moduleChecklists[0].moduleId)
+    const loadModuleConfigurations = async () => {
+      const moduleChecklists = modules
+        .map(moduleId => getModuleChecklist(moduleId))
+        .filter(Boolean) as ModuleChecklist[]
+      
+      // Intentar cargar configuraciones desde el servidor primero
+      try {
+        const response = await fetch('/api/module-configurations/load')
+        if (response.ok) {
+          const result = await response.json()
+          if (result.success && result.configurations) {
+            
+            // Aplicar configuraciones del servidor
+            const checklistsWithServerData = moduleChecklists.map(checklist => ({
+              ...checklist,
+              items: checklist.items.map(item => {
+                const serverConfig = result.configurations[checklist.moduleId]?.items?.[item.id]
+                if (serverConfig) {
+                  return { ...item, ...serverConfig }
+                }
+                return item
+              })
+            }))
+            
+            setChecklists(checklistsWithServerData)
+            
+            // También guardar en localStorage como respaldo
+            checklistsWithServerData.forEach(checklist => {
+              checklist.items.forEach(item => {
+                if (item.value || item.completed) {
+                  const storageKey = `module_config_${checklist.moduleId}_${item.id}`
+                  localStorage.setItem(storageKey, JSON.stringify({ 
+                    value: item.value, 
+                    completed: item.completed 
+                  }))
+                }
+              })
+            })
+            
+            if (onChecklistUpdate) {
+              onChecklistUpdate(checklistsWithServerData)
+            }
+            return
+          }
+        }
+      } catch (error) {
+        console.error('[ModuleChecklist] Error loading server configurations:', error)
+      }
+      
+      // Fallback: cargar desde localStorage si el servidor falla
+      const checklistsWithSavedData = moduleChecklists.map(checklist => ({
+        ...checklist,
+        items: checklist.items.map(item => {
+          const storageKey = `module_config_${checklist.moduleId}_${item.id}`
+          const savedData = localStorage.getItem(storageKey)
+          if (savedData) {
+            try {
+              const parsedData = JSON.parse(savedData)
+              return { ...item, ...parsedData }
+            } catch (error) {
+              console.error('Error parsing saved data:', error)
+              return item
+            }
+          }
+          return item
+        })
+      }))
+      
+      setChecklists(checklistsWithSavedData)
+      if (checklistsWithSavedData.length > 0 && !expandedModule) {
+        setExpandedModule(checklistsWithSavedData[0].moduleId)
+      }
+
+      if (onChecklistUpdate) {
+        onChecklistUpdate(checklistsWithSavedData)
+      }
     }
 
-    // Notificar al componente padre sobre los checklists
-    if (onChecklistUpdate) {
-      onChecklistUpdate(moduleChecklists)
-    }
-  }, [modules, expandedModule, onChecklistUpdate])
+    loadModuleConfigurations()
+  }, [modules, expandedModule])
 
-  const updateChecklistItem = (moduleId: string, itemId: string, updates: Partial<ChecklistItem>) => {
+  const updateChecklistItem = async (moduleId: string, itemId: string, updates: Partial<ChecklistItem>) => {
+    // Actualizar el estado local inmediatamente
     setChecklists(prev => 
       prev.map(checklist => 
         checklist.moduleId === moduleId
@@ -523,11 +548,60 @@ export function ModuleChecklist({ modules, onProgress, onChecklistUpdate }: Modu
       )
     )
 
+    // Guardar en localStorage para persistencia local
+    const storageKey = `module_config_${moduleId}_${itemId}`
+    localStorage.setItem(storageKey, JSON.stringify(updates))
+
+    // Guardar automáticamente en el servidor
+    try {
+      // Crear estructura de configuraciones completa para enviar al servidor
+      const moduleConfig = checklists.find(c => c.moduleId === moduleId)
+      if (moduleConfig) {
+        const configurationData: any = {}
+        
+        // Actualizar la configuración con los nuevos datos
+        moduleConfig.items.forEach(item => {
+          if (item.id === itemId) {
+            configurationData[item.id] = { ...updates }
+          } else if (item.value || item.completed) {
+            configurationData[item.id] = { 
+              value: item.value, 
+              completed: item.completed 
+            }
+          }
+        })
+
+        const configurations = {
+          [moduleId]: {
+            items: configurationData
+          }
+        }
+
+        const response = await fetch('/api/module-configurations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ configurations })
+        })
+
+        if (!response.ok) {
+          // Si falla el servidor, al menos tenemos localStorage como respaldo
+        } else {
+          // Guardado exitoso
+        }
+      }
+    } catch (error) {
+      console.error('[ModuleChecklist] Error auto-saving to server:', error)
+      // Si falla el servidor, al menos tenemos localStorage como respaldo
+    }
+
     // Calcular progreso
     const moduleChecklist = checklists.find(c => c.moduleId === moduleId)
     if (moduleChecklist && onProgress) {
-      const completed = moduleChecklist.items.filter(item => item.completed).length
-      const total = moduleChecklist.items.length
+      const updatedItems = moduleChecklist.items.map(item =>
+        item.id === itemId ? { ...item, ...updates } : item
+      )
+      const completed = updatedItems.filter(item => item.completed).length
+      const total = updatedItems.length
       const progress = (completed / total) * 100
       onProgress(moduleId, progress)
     }
@@ -541,6 +615,52 @@ export function ModuleChecklist({ modules, onProgress, onChecklistUpdate }: Modu
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
+  }
+
+  const saveToServer = async () => {
+    try {
+      // Crear estructura completa de configuraciones para enviar al servidor
+      const configurations: any = {}
+      
+      checklists.forEach(checklist => {
+        const moduleItems: any = {}
+        checklist.items.forEach(item => {
+          if (item.value || item.completed) {
+            moduleItems[item.id] = {
+              value: item.value || '',
+              completed: item.completed
+            }
+          }
+        })
+        
+        if (Object.keys(moduleItems).length > 0) {
+          configurations[checklist.moduleId] = {
+            items: moduleItems
+          }
+        }
+      })
+
+      const response = await fetch('/api/module-configurations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ configurations })
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        if (result.success) {
+          alert('✅ Configuración guardada correctamente')
+        } else {
+          throw new Error(result.error || 'Error desconocido')
+        }
+      } else {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+      
+    } catch (error) {
+      console.error('[ModuleChecklist] Error in manual sync:', error)
+      alert(`❌ Error al guardar: ${error instanceof Error ? error.message : 'Error desconocido'}`)
+    }
   }
 
   const renderInput = (moduleId: string, item: ChecklistItem) => {
@@ -647,6 +767,23 @@ export function ModuleChecklist({ modules, onProgress, onChecklistUpdate }: Modu
 
   return (
     <div className="space-y-6">
+      {/* Botón de guardar configuración */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h3 className="text-lg font-semibold">Configuración de Módulos</h3>
+          <p className="text-sm text-muted-foreground">
+            Los datos se guardan automáticamente en el servidor mientras escribes
+          </p>
+        </div>
+        <Button 
+          onClick={saveToServer}
+          className="flex items-center gap-2"
+        >
+          <Save className="w-4 h-4" />
+          Guardar
+        </Button>
+      </div>
+      
       <div className="grid gap-4">
         {checklists.map((checklist) => {
           const progress = getModuleProgress(checklist)
