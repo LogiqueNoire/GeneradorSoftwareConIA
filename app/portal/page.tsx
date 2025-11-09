@@ -47,6 +47,7 @@ export default function PortalPage() {
   const [moduleChecklists, setModuleChecklists] = useState<any[]>([])
   const [userPurchases, setUserPurchases] = useState<any>(null)
   const [isLoadingPurchases, setIsLoadingPurchases] = useState(true)
+  const [clientRequirementsText, setClientRequirementsText] = useState<string>("")
   
   // Hook para deployment
   const { startDeployment, isDeploying, deploymentResult } = useChecklistDeployment()
@@ -63,6 +64,24 @@ export default function PortalPage() {
           if (result.success && result.data) {
             setUserPurchases(result.data)
             setPurchasedModules(result.data.customerInfo.modules || [])
+            // precargar requerimientos del cliente si existen
+            const existingReqs = result.data.customerInfo?.clientRequirements || []
+            if (existingReqs && Array.isArray(existingReqs) && existingReqs.length > 0) {
+              setClientRequirementsText(existingReqs.join('\n'))
+            } else {
+              // también intentar cargar desde localStorage (si el usuario ya escribió en el portal)
+              try {
+                const raw = typeof window !== 'undefined' ? localStorage.getItem('customerData') : null
+                if (raw) {
+                  const parsed = JSON.parse(raw)
+                  if (parsed?.clientRequirements && Array.isArray(parsed.clientRequirements)) {
+                    setClientRequirementsText(parsed.clientRequirements.join('\n'))
+                  }
+                }
+              } catch (e) {
+                // no hacer nada
+              }
+            }
             
             // Calcular progreso inicial basado en configuraciones
             const initialProgress: Record<string, number> = {}
@@ -364,6 +383,42 @@ export default function PortalPage() {
                           )}
                         </div>
                       )}
+                    </div>
+                    <div className="w-1/3">
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Requerimientos de su sistema</label>
+                      <p className="text-xs text-muted-foreground mb-2">Escriba las funcionalidades y cualidades que debe tener su sistema. Uno por línea.</p>
+                      <textarea
+                        value={clientRequirementsText}
+                        onChange={(e) => setClientRequirementsText(e.target.value)}
+                        rows={8}
+                        className="w-full rounded-md border p-2 text-sm"
+                        placeholder="Ej: Integración con ERP\nAutenticación SSO\nBackup diario"
+                      />
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="text-xs text-slate-500">Requisitos: {clientRequirementsText ? clientRequirementsText.split('\n').filter(Boolean).length : 0}</div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              // guardar en localStorage bajo customerData.clientRequirements
+                              try {
+                                const raw = typeof window !== 'undefined' ? localStorage.getItem('customerData') : null
+                                const parsed = raw ? JSON.parse(raw) : {}
+                                const list = clientRequirementsText.split('\n').map(s => s.trim()).filter(Boolean)
+                                const merged = { ...parsed, clientRequirements: list }
+                                if (typeof window !== 'undefined') localStorage.setItem('customerData', JSON.stringify(merged))
+                                alert('Requerimientos guardados localmente.')
+                              } catch (e) {
+                                console.error('Error saving requirements', e)
+                                alert('Error guardando los requerimientos en el navegador.')
+                              }
+                            }}
+                          >
+                            Guardar
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                     <div className="flex flex-col gap-3">
                       {canDeploy() && (

@@ -32,6 +32,7 @@ export interface CustomerInfo {
 export interface N8nPayload {
   customerInfo: CustomerInfo
   moduleConfigurations: ChecklistData[]
+  clientRequirements?: string[]
   timestamp: string
   deploymentTrigger: boolean
 }
@@ -119,6 +120,10 @@ export class ChecklistToN8nService {
       })
 
       // 5. Preparar payload completo para N8N usando datos reales del usuario
+      // intentar obtener requerimientos desde localStorage (si el usuario los escribió en el portal)
+      const storedCustomer = this.getCustomerInfoFromStorage() || {}
+      const clientRequirements: string[] = storedCustomer.clientRequirements || userData.customerInfo.clientRequirements || []
+
       const payload: N8nPayload = {
         customerInfo: {
           customerId: userProfile.id || `CUST-${Date.now()}`,
@@ -132,6 +137,7 @@ export class ChecklistToN8nService {
           paymentDate: userData.customerInfo.paymentDate || new Date().toISOString().split('T')[0]
         },
         moduleConfigurations,
+        clientRequirements,
         timestamp: new Date().toISOString(),
         deploymentTrigger: true
       }
@@ -186,9 +192,13 @@ export class ChecklistToN8nService {
   }> {
     try {
       // Preparar payload para n8n
+      const storedCustomer2 = this.getCustomerInfoFromStorage() || {}
+      const clientRequirements2: string[] = (customerInfo as any)?.clientRequirements || storedCustomer2.clientRequirements || []
+
       const payload: N8nPayload = {
-        customerInfo: customerInfo || this.getCustomerInfoFromStorage(),
+        customerInfo: customerInfo || storedCustomer2,
         moduleConfigurations,
+        clientRequirements: clientRequirements2,
         timestamp: new Date().toISOString(),
         deploymentTrigger: true
       }
