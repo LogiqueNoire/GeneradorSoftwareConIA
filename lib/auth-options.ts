@@ -82,9 +82,23 @@ export const authOptions: NextAuthOptions = {
       }
     },
     async redirect({ url, baseUrl }) {
-      // Redirigir al portal después del login exitoso
-      if (url.startsWith("/")) return `${baseUrl}${url}`;
-      if (new URL(url).origin === baseUrl) return url;
+      // Siempre redirigir al portal después del login exitoso
+      
+      // Si viene con callbackUrl específico, usarlo
+      if (url.includes('callbackUrl=')) {
+        const urlParams = new URLSearchParams(url.split('?')[1]);
+        const callbackUrl = urlParams.get('callbackUrl');
+        if (callbackUrl) {
+          return `${baseUrl}${callbackUrl}`;
+        }
+      }
+      
+      // Si la URL ya incluye portal, mantenerla
+      if (url.includes('/portal')) {
+        return url.startsWith("/") ? `${baseUrl}${url}` : url;
+      }
+      
+      // Por defecto, siempre ir al portal
       return `${baseUrl}/portal`;
     },
     async jwt({ token, account, user, trigger }) {
